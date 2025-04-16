@@ -1,4 +1,4 @@
-package com.stackflov.Service;
+package com.stackflov.service;
 
 
 import lombok.RequiredArgsConstructor;

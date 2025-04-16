@@ -1,6 +1,6 @@
-package com.stackflov.Controller;
+package com.stackflov.controller;
 
-import com.stackflov.Service.RedisService;
+import com.stackflov.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +25,8 @@ public class RedisTestController {
     @DeleteMapping("/delete")
     public String delete(@RequestParam String key) {
         redisService.delete(key);
+        System.out.println("http://localhost:8080/swagger-ui/index.html");
         return "삭제 완료";
     }
+
 }

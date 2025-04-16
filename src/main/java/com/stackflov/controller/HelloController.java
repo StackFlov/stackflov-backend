@@ -1,4 +1,4 @@
-package com.stackflov.Controller;
+package com.stackflov.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

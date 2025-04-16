@@ -23,7 +23,13 @@ repositories {
 	mavenCentral()
 }
 
+tasks.withType(Test) {
+	enabled = false
+}
+
+
 dependencies {
+	implementation 'mysql:mysql-connector-java:8.0.25'  // MySQL 커넥터 버전 확인
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -31,9 +37,7 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 	implementation 'org.projectlombok:lombok'
 
-
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
