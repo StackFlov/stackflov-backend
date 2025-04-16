@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://stackflov-db.choimqge4z33.ap-southeast-2.rds.amazonaws.com:3306/stackflov
-    username: admin
-    password: StackFlov#123
+    url: jdbc:mysql://localhost:3306/stackflov
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
