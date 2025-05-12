@@ -7,24 +7,37 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtProvider jwtProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()) // ✅ POST 막힘 방지
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/redis/**",
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/auth/login", "/auth/register",
                                 "/hello"
                         ).permitAll()
-                        .anyRequest().permitAll() // 👈 일단 전부 허용으로 테스트 (최종 배포 전엔 authenticated로 다시)
+                        .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.disable()) // 🔓 로그인 폼 끄기
-                .httpBasic(basic -> basic.disable()) // 🔓 기본 인증 끄기
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+                .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .build();
     }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
 }
+
 
