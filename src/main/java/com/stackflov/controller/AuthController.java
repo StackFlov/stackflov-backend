@@ -1,6 +1,7 @@
 package com.stackflov.controller;
 
 import com.stackflov.dto.LoginRequestDto;
+import com.stackflov.dto.SignupRequestDto;
 import com.stackflov.dto.TokenResponseDto;
 import com.stackflov.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +19,12 @@ public class AuthController {
     public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto requestDto) {
         TokenResponseDto response = userService.login(requestDto);
         return ResponseEntity.ok(response);
+    }
+
+    // 회원가입
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody SignupRequestDto requestDto) {
+        userService.register(requestDto);
+        return ResponseEntity.ok("회원가입 완료");
     }
 }

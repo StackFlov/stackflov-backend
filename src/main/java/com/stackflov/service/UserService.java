@@ -1,6 +1,7 @@
 package com.stackflov.service;
 
 import com.stackflov.dto.LoginRequestDto;
+import com.stackflov.dto.SignupRequestDto;
 import com.stackflov.dto.TokenResponseDto;
 import com.stackflov.entity.User;
 import com.stackflov.jwt.JwtProvider;
@@ -16,6 +17,27 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+
+    public void register(SignupRequestDto requestDto) {
+        if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+
+        User user = User.builder()
+                .email(requestDto.getEmail())
+                .password(encodedPassword)
+                .profileImage(requestDto.getProfileImage())
+                .nickname(requestDto.getNickname())
+                .socialType(requestDto.getSocialType())
+                .socialId(requestDto.getSocialId())
+                .level(requestDto.getLevel())
+                .role(requestDto.getRole())
+                .build();
+
+        userRepository.save(user);
+    }
 
     public TokenResponseDto login(LoginRequestDto requestDto) {
 

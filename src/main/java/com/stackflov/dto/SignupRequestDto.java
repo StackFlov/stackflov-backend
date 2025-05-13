@@ -1,7 +1,7 @@
 package com.stackflov.dto;
 
-import com.stackflov.entity.Role;
-import com.stackflov.entity.SocialType;
+import com.stackflov.domain.Role;
+import com.stackflov.domain.SocialType;
 import lombok.Getter;
 import lombok.Setter;
 
