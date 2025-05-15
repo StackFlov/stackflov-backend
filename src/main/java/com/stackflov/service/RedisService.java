@@ -1,9 +1,10 @@
 package com.stackflov.service;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -11,8 +12,8 @@ public class RedisService {
 
     private final StringRedisTemplate redisTemplate;
 
-    public void save(String key, String value) {
-        redisTemplate.opsForValue().set(key, value);
+    public void save(String key, String value, long ttlMillis) {
+        redisTemplate.opsForValue().set(key, value, ttlMillis, TimeUnit.MILLISECONDS);
     }
 
     public String get(String key) {
@@ -23,4 +24,3 @@ public class RedisService {
         redisTemplate.delete(key);
     }
 }
-

@@ -17,6 +17,7 @@ public class RedisTestController {
         return "저장 완료";
     }
 
+
     @GetMapping("/get")
     public String get(@RequestParam String key) {
         return redisService.get(key);
