@@ -4,6 +4,8 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,7 @@ public class JwtProvider {
 
     public final long ACCESS_TOKEN_EXPIRE_TIME = 1000L * 60 * 60;             // 1시간
     public final long REFRESH_TOKEN_EXPIRE_TIME = 1000L * 60 * 60 * 24 * 7;  // 7일
+    private static final Logger logger = LoggerFactory.getLogger(JwtProvider.class);
 
     @PostConstruct
     protected void init() {
@@ -74,9 +77,12 @@ public class JwtProvider {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
+        } catch (JwtException e) {
+            logger.error("JWT 토큰 유효성 검사 실패: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("JWT 토큰이 잘못되었습니다: {}", e.getMessage());
         }
+        return false;
     }
 
     private Claims parseClaims(String token) {

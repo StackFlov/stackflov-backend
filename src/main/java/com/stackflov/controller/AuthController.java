@@ -21,13 +21,16 @@ public class AuthController {
 
     @PostMapping("/reissue")
     public ResponseEntity<TokenResponseDto> reissue(@RequestBody ReissueRequest request) {
+        System.out.println("[DEBUG] /auth/reissue 요청 들어옴, refreshToken: " + request.getRefreshToken());
         try {
             TokenResponseDto tokenResponse = authService.reissueToken(request.getRefreshToken());
             return ResponseEntity.ok(tokenResponse);
         } catch (IllegalArgumentException e) {
+            System.out.println("[ERROR] 토큰 재발급 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody SignupRequestDto signupRequestDto) {
