@@ -1,11 +1,10 @@
 package com.stackflov.controller;
 
-import com.stackflov.domain.User;
+import com.stackflov.dto.LoginRequestDto;
+import com.stackflov.dto.SignupRequestDto;
 import com.stackflov.dto.TokenResponseDto;
-import com.stackflov.jwt.JwtProvider;
-import com.stackflov.repository.UserRepository;
-import com.stackflov.service.RedisService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.stackflov.service.AuthService;
+import com.stackflov.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,34 +16,33 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final JwtProvider jwtProvider;
-    private final RedisService redisService;
-    private final UserRepository userRepository;
+    private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/reissue")
     public ResponseEntity<TokenResponseDto> reissue(@RequestBody ReissueRequest request) {
-        String refreshToken = request.getRefreshToken();
-
-        if (!jwtProvider.validateToken(refreshToken)) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        String email = jwtProvider.getEmail(refreshToken);
-        String savedRefreshToken = redisService.get("RT:" + email);
-
-        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
+        try {
+            TokenResponseDto tokenResponse = authService.reissueToken(request.getRefreshToken());
+            return ResponseEntity.ok(tokenResponse);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody SignupRequestDto signupRequestDto) {
+        userService.register(signupRequestDto);
+        return ResponseEntity.ok("회원가입 성공");
+    }
 
-        String newAccessToken = jwtProvider.createAccessToken(email, user.getRole().name());
-        String newRefreshToken = jwtProvider.createRefreshToken(email);
-
-        redisService.save("RT:" + email, newRefreshToken, jwtProvider.REFRESH_TOKEN_EXPIRE_TIME);
-
-        return ResponseEntity.ok(new TokenResponseDto(newAccessToken, newRefreshToken));
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+        try {
+            TokenResponseDto tokens = userService.login(loginRequestDto);
+            return ResponseEntity.ok(tokens);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 }
 

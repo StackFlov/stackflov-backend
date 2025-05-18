@@ -13,10 +13,10 @@ public class RedisTestController {
 
     @PostMapping("/save")
     public String save(@RequestParam String key, @RequestParam String value) {
-        redisService.save(key, value);
+        long oneHourMillis = 1000L * 60 * 60;  // 1시간 TTL 설정
+        redisService.save(key, value, oneHourMillis);
         return "저장 완료";
     }
-
 
     @GetMapping("/get")
     public String get(@RequestParam String key) {
