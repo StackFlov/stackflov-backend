@@ -36,7 +36,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**", "/v3/api-docs/**",
-                                "/auth/login", "/auth/register", "/auth/reissue", "/boards/**"
+                                "/auth/login", "/auth/register", "/auth/reissue",
+                                "/boards/**", "/redis/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/boards").authenticated() // 게시글 작성은 로그인 필요
                         .anyRequest().authenticated()
