@@ -1,0 +1,49 @@
+package com.stackflov.controller;
+
+import com.stackflov.domain.User;
+import com.stackflov.dto.BoardListResponseDto;
+import com.stackflov.dto.BoardRequestDto;
+import com.stackflov.dto.BoardResponseDto;
+import com.stackflov.jwt.JwtProvider;
+import com.stackflov.service.BoardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/boards")
+@RequiredArgsConstructor
+public class BoardController {
+
+    private final BoardService boardService;
+    private final JwtProvider jwtProvider;
+    @PostMapping
+    public ResponseEntity<?> createBoard(@RequestBody BoardRequestDto dto,
+                                         @RequestHeader("Authorization") String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        String email = jwtProvider.getEmail(token);
+
+        Long boardId = boardService.createBoard(email, dto);
+        return ResponseEntity.ok(boardId);
+    }
+
+    private Long extractUserIdFromToken(String token) {
+        // TODO: JWT 토큰 파싱해서 실제 유저 ID 반환하는 코드 작성
+        return 1L; // 테스트용 목값 (임시 하드코딩)
+    }
+
+    @GetMapping("/{boardId}")
+    public ResponseEntity<BoardResponseDto> getBoard(@PathVariable Long boardId) {
+        BoardResponseDto response = boardService.getBoard(boardId);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping
+    public ResponseEntity<Page<BoardListResponseDto>> getBoards(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size  //10에서 바꾸고 싶을 때 여기서 바꾸면 됨
+    ) {
+        Page<BoardListResponseDto> boards = boardService.getBoards(page, size);
+        return ResponseEntity.ok(boards);
+    }
+}
