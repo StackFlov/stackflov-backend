@@ -18,5 +18,3 @@ spring:
   application:
     name: StackFlov
 
-jwt:
-  secret: 32ef3181bb26ce1875bbfc018d8e6039
