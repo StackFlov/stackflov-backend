@@ -4,6 +4,7 @@ import com.stackflov.domain.User;
 import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardRequestDto;
 import com.stackflov.dto.BoardResponseDto;
+import com.stackflov.dto.BoardUpdateRequestDto;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.BoardService;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,25 @@ public class BoardController {
     ) {
         Page<BoardListResponseDto> boards = boardService.getBoards(page, size);
         return ResponseEntity.ok(boards);
+    }
+    @PutMapping("/{boardId}")
+    public ResponseEntity<?> updateBoard(@PathVariable Long boardId,
+                                         @RequestBody BoardUpdateRequestDto dto,
+                                         @RequestHeader("Authorization") String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        String email = jwtProvider.getEmail(token);
+
+        boardService.updateBoard(email, boardId, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> deleteBoard(@PathVariable Long boardId,
+                                         @RequestHeader("Authorization") String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        String email = jwtProvider.getEmail(token);
+
+        boardService.deleteBoard(email, boardId);
+        return ResponseEntity.noContent().build();
     }
 }
