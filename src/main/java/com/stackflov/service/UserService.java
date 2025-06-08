@@ -3,12 +3,10 @@ package com.stackflov.service;
 import com.stackflov.domain.Role;
 import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
-import com.stackflov.dto.LoginRequestDto;
-import com.stackflov.dto.SignupRequestDto;
-import com.stackflov.dto.TokenResponseDto;
-import com.stackflov.dto.UserResponseDto;
+import com.stackflov.dto.*;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -70,5 +68,17 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
         return new UserResponseDto(user);
     }
+    @Transactional
+    public void updateUser(String email, UserUpdateRequestDto dto) {
+        User user = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
 
+        if (dto.getNickname() != null) {
+            user.updateNickname(dto.getNickname());
+        }
+
+        if (dto.getProfileImage() != null) {
+            user.updateProfileImage(dto.getProfileImage());
+        }
+    }
 }

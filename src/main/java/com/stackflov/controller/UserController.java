@@ -1,14 +1,13 @@
 package com.stackflov.controller;
 
 import com.stackflov.dto.UserResponseDto;
+import com.stackflov.dto.UserUpdateRequestDto;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users") // 이것도 빠져 있었을 수 있음
@@ -25,4 +24,12 @@ public class UserController {
         UserResponseDto dto = userService.getUserByEmail(email);
         return ResponseEntity.ok(dto);
     }
+    @PutMapping("/users/me")
+    public ResponseEntity<?> updateMyInfo(
+            @RequestBody UserUpdateRequestDto dto,
+            @AuthenticationPrincipal String email) {
+        userService.updateUser(email, dto);
+        return ResponseEntity.ok().build();
+    }
+
 }
