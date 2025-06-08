@@ -38,6 +38,10 @@ public class User {
 
     private int level;  // 등급
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
     @Enumerated(EnumType.STRING)
     private Role role;  // 권한 (user, admin, guest)
 

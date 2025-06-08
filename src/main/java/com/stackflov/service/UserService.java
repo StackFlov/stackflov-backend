@@ -6,6 +6,7 @@ import com.stackflov.domain.User;
 import com.stackflov.dto.LoginRequestDto;
 import com.stackflov.dto.SignupRequestDto;
 import com.stackflov.dto.TokenResponseDto;
+import com.stackflov.dto.UserResponseDto;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class UserService {
     public void register(SignupRequestDto signupRequestDto) {
         String email = signupRequestDto.getEmail();
 
+        /*
         // ✅ 이메일 인증 여부 확인
         String verified = redisService.get("EMAIL_VERIFIED:" + email);
         if (!"true".equals(verified)) {
@@ -49,7 +51,7 @@ public class UserService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-
+        */
         User user = User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
@@ -63,4 +65,10 @@ public class UserService {
 
         userRepository.save(user);
     }
+    public UserResponseDto getUserByEmail(String email) {
+        User user = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
+        return new UserResponseDto(user);
+    }
+
 }
