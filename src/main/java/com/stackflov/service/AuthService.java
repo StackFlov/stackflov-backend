@@ -37,4 +37,8 @@ public class AuthService {
 
         return new TokenResponseDto(newAccessToken, newRefreshToken);
     }
+    public void logout(String token) {
+        String email = jwtProvider.getEmail(token);
+        redisService.delete("RT:" + email);
+    }
 }

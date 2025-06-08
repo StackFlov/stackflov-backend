@@ -38,13 +38,18 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**", "/v3/api-docs/**",
                                 "/auth/login", "/auth/register", "/auth/reissue",
-                                "/boards/**", "/redis/**"
+                                "/auth/email/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/boards").authenticated() // 게시글 작성은 로그인 필요
+
+                        .requestMatchers(HttpMethod.GET, "/boards/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/boards").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/boards/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/boards/**").authenticated()
+                        .requestMatchers("/auth/logout").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

@@ -1,9 +1,10 @@
 package com.stackflov.controller;
 
-import com.stackflov.dto.LoginRequestDto;
-import com.stackflov.dto.SignupRequestDto;
-import com.stackflov.dto.TokenResponseDto;
+import com.stackflov.dto.*;
+import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.AuthService;
+import com.stackflov.service.EmailService;
+import com.stackflov.service.RedisService;
 import com.stackflov.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final EmailService emailService;
 
     @PostMapping("/reissue")
     public ResponseEntity<TokenResponseDto> reissue(@RequestBody ReissueRequest request) {
@@ -47,6 +49,26 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        authService.logout(token);
+        return ResponseEntity.ok("로그아웃 완료");
+    }
+    @PostMapping("/email/send")
+    public ResponseEntity<String> sendCode(@RequestBody EmailRequestDto requestDto) {
+        emailService.sendVerificationCode(requestDto.getEmail());
+        return ResponseEntity.ok("인증 코드가 이메일로 전송되었습니다.");
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<String> verifyCode(@RequestBody EmailCodeVerifyRequestDto dto) {
+        boolean result = emailService.verifyCode(dto.getEmail(), dto.getCode());
+        return result
+                ? ResponseEntity.ok("이메일 인증 성공")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일 인증 실패");
+    }
+
 }
 
 // DTO for refresh token request

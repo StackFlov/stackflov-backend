@@ -37,15 +37,21 @@ public class UserService {
         return new TokenResponseDto(accessToken, refreshToken);
     }
     public void register(SignupRequestDto signupRequestDto) {
-        // 이메일 중복 체크
-        if (userRepository.findByEmail(signupRequestDto.getEmail()).isPresent()) {
+        String email = signupRequestDto.getEmail();
+
+        // ✅ 이메일 인증 여부 확인
+        String verified = redisService.get("EMAIL_VERIFIED:" + email);
+        if (!"true".equals(verified)) {
+            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
+        }
+
+        // ✅ 중복 이메일 확인
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
-        // 사용자 엔티티 생성
         User user = User.builder()
-                .email(signupRequestDto.getEmail())
-                // 비밀번호는 암호화해서 저장
+                .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
                 .nickname(signupRequestDto.getNickname())
                 .profileImage(signupRequestDto.getProfileImage())
@@ -55,7 +61,6 @@ public class UserService {
                 .role(signupRequestDto.getRole() != null ? signupRequestDto.getRole() : Role.USER)
                 .build();
 
-        // DB 저장
         userRepository.save(user);
     }
 }
