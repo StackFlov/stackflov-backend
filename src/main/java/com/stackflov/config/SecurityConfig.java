@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/boards").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/boards/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/boards/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/users/password").authenticated()
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
                         .anyRequest().authenticated()

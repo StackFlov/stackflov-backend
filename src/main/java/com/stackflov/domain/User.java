@@ -58,4 +58,8 @@ public class User {
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
+
+    public void setPassword(String password) {
+        this.password = password;  // 암호화된 비밀번호를 저장
+    }
 }

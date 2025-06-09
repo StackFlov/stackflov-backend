@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.dto.PasswordUpdateRequestDto;
 import com.stackflov.dto.UserResponseDto;
 import com.stackflov.dto.UserUpdateRequestDto;
 import com.stackflov.jwt.JwtProvider;
@@ -29,6 +30,13 @@ public class UserController {
             @RequestBody UserUpdateRequestDto dto,
             @AuthenticationPrincipal String email) {
         userService.updateUser(email, dto);
+        return ResponseEntity.ok().build();
+    }
+    // 비밀번호 변경 API
+    @PutMapping("/password")
+    public ResponseEntity<Void> updatePassword(@RequestBody PasswordUpdateRequestDto dto,
+                                               @RequestAttribute("email") String email) {
+        userService.updatePassword(email, dto);
         return ResponseEntity.ok().build();
     }
 

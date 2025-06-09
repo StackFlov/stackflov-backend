@@ -38,7 +38,7 @@ public class UserService {
     public void register(SignupRequestDto signupRequestDto) {
         String email = signupRequestDto.getEmail();
 
-        /*
+
         // ✅ 이메일 인증 여부 확인
         String verified = redisService.get("EMAIL_VERIFIED:" + email);
         if (!"true".equals(verified)) {
@@ -49,7 +49,7 @@ public class UserService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-        */
+
         User user = User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
@@ -80,5 +80,19 @@ public class UserService {
         if (dto.getProfileImage() != null) {
             user.updateProfileImage(dto.getProfileImage());
         }
+    }
+    @Transactional
+    public void updatePassword(String email, PasswordUpdateRequestDto dto) {
+        // 사용자 확인
+        User user = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호로 변경
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
 }
