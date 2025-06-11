@@ -47,6 +47,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/users/password").authenticated()
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/comments").authenticated()  // 댓글 작성은 인증된 회원만
+                        .requestMatchers(HttpMethod.PUT, "/comments/**").authenticated()  // 댓글 수정은 작성자만
+                        .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()  // 댓글 삭제는 작성자만
+                        .requestMatchers(HttpMethod.GET, "/comments/board/**").permitAll()  // 댓글 조회는 비회원도 가능
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
