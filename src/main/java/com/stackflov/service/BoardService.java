@@ -7,7 +7,6 @@ import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardRequestDto;
 import com.stackflov.dto.BoardResponseDto;
 import com.stackflov.dto.BoardUpdateRequestDto;
-import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.BoardImageRepository;
 import com.stackflov.repository.BoardRepository;
 import com.stackflov.repository.UserRepository;
@@ -19,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,19 +95,24 @@ public class BoardService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
+        // 게시글 제목, 내용, 카테고리 수정
         board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
 
-        // 기존 이미지 삭제 후 새 이미지 등록
+        // 기존 이미지 삭제
         boardImageRepository.deleteAll(board.getImages());
-        List<BoardImage> newImages = dto.getImageUrls().stream()
+
+        // 이미지 URL이 null일 경우 빈 리스트 처리
+        List<BoardImage> newImages = (dto.getImageUrls() == null ? new ArrayList<>() : dto.getImageUrls()).stream()
                 .map(url -> BoardImage.builder()
                         .board(board)
-                        .imageUrl(url)
+                        .imageUrl((String) url)
                         .build())
-                .toList();
+                .collect(Collectors.toList());
 
+        // 새로운 이미지 URL을 저장
         boardImageRepository.saveAll(newImages);
     }
+
 
     @Transactional
     public void deleteBoard(String email, Long boardId) {

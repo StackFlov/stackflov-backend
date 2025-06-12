@@ -17,6 +17,7 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -27,6 +28,9 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;  // 댓글 작성한 사용자
 
+    @Column(nullable = false, length = 100)
+    private String title;  // 댓글 제목 추가 (content 위로 위치 수정)
+
     @Column(nullable = false)
     private String content;  // 댓글 내용
 
@@ -35,6 +39,11 @@ public class Comment {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // 댓글 제목을 수정하는 메서드
+    public void updateTitle(String title) {
+        this.title = title;
+    }
 
     // 댓글 내용을 수정하는 메서드
     public void updateContent(String content) {

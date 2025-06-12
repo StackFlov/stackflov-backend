@@ -29,6 +29,7 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
+
     // 액세스 토큰 생성
     public String createAccessToken(String email, String role) {
         Claims claims = Jwts.claims().setSubject(email);

@@ -20,14 +20,13 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final BoardRepository boardRepository;
 
-    // 댓글 작성
+    // 댓글 생성
     @Transactional
     public Long createComment(CommentRequestDto commentRequestDto, String userEmail) {
 
-        System.out.println("댓글 작성 시 이메일: " + userEmail);  // 이메일 로그 출력
         // 사용자 이메일을 이용하여 유저를 조회
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
@@ -40,30 +39,17 @@ public class CommentService {
         Comment comment = Comment.builder()
                 .board(board)
                 .user(user)
-                .content(commentRequestDto.getContent())
+                .title(commentRequestDto.getTitle())   // title 설정
+                .content(commentRequestDto.getContent())  // content 설정
                 .build();
 
         commentRepository.save(comment);
         return comment.getId();  // 생성된 댓글 ID 반환
     }
 
-    // 특정 게시글에 달린 댓글들 조회
-    public List<CommentResponseDto> getComments(Long boardId) {
-        List<Comment> comments = commentRepository.findByBoardId(boardId);
-        return comments.stream()
-                .map(comment -> new CommentResponseDto(
-                        comment.getId(),
-                        comment.getContent(),
-                        comment.getUser().getEmail(),
-                        comment.getCreatedAt(),
-                        comment.getUpdatedAt()
-                ))
-                .collect(Collectors.toList());
-    }
-
     // 댓글 수정
     @Transactional
-    public void updateComment(Long commentId, String content, String userEmail) {
+    public void updateComment(Long commentId, String title, String content, String userEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
 
@@ -72,9 +58,10 @@ public class CommentService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        comment.updateContent(content);
+        // 댓글 제목과 내용 수정
+        comment.updateTitle(title);   // 제목 수정
+        comment.updateContent(content);  // 내용 수정
     }
-
     // 댓글 삭제
     @Transactional
     public void deleteComment(Long commentId, String userEmail) {
@@ -86,6 +73,7 @@ public class CommentService {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
-        commentRepository.delete(comment);
+        commentRepository.delete(comment);  // 댓글 삭제
     }
 }
+
