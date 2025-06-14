@@ -51,6 +51,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/comments/**").authenticated()  // 댓글 수정은 작성자만
                         .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()  // 댓글 삭제는 작성자만
                         .requestMatchers(HttpMethod.GET, "/comments/board/**").permitAll()  // 댓글 조회는 비회원도 가능
+
+                        .requestMatchers(HttpMethod.POST, "/follows/follow").authenticated()  // 팔로우 추가
+                        .requestMatchers(HttpMethod.DELETE, "/follows/unfollow").authenticated()  // 팔로우 취소
+                        .requestMatchers(HttpMethod.GET, "/follows/followers/**").permitAll()  // 팔로워 조회 (비회원 가능)
+                        .requestMatchers(HttpMethod.GET, "/follows/following/**").permitAll()  // 팔로잉 조회 (비회원 가능)
+
+                        .requestMatchers(HttpMethod.POST, "/bookmarks").authenticated() // 북마크 추가 (인증된 회원만)
+                        .requestMatchers(HttpMethod.DELETE, "/bookmarks").authenticated() // 북마크 삭제 (인증된 회원만)
+                        .requestMatchers(HttpMethod.GET, "/bookmarks/my").authenticated() // 내 북마크 조회 (인증된 회원만)
+                        .requestMatchers(HttpMethod.GET, "/bookmarks/board/**").permitAll() // 특정 게시글 북마크 여부 확인 (비회원도 가능)
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

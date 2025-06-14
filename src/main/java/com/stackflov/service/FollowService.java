@@ -2,6 +2,7 @@ package com.stackflov.service;
 
 import com.stackflov.domain.Follow;
 import com.stackflov.domain.User;
+import com.stackflov.dto.UserResponseDto; // UserResponseDto 임포트 추가
 import com.stackflov.repository.FollowRepository;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -56,15 +57,21 @@ public class FollowService {
         return followRepository.findByFollowerIdAndFollowedId(followerId, followedId).isPresent();
     }
 
-    // 팔로워 목록 조회
-    public List<User> getFollowers(Long followedId) {
+    // 팔로워 목록 조회 - 반환 타입을 List<UserResponseDto>로 변경
+    public List<UserResponseDto> getFollowers(Long followedId) {
         List<Follow> follows = followRepository.findByFollowedId(followedId);
-        return follows.stream().map(follow -> follow.getFollower()).collect(Collectors.toList());
+        // User 엔티티를 UserResponseDto로 변환하여 반환
+        return follows.stream()
+                .map(follow -> new UserResponseDto(follow.getFollower()))
+                .collect(Collectors.toList());
     }
 
-    // 팔로우 목록 조회
-    public List<User> getFollowing(Long followerId) {
+    // 팔로우 목록 조회 - 반환 타입을 List<UserResponseDto>로 변경
+    public List<UserResponseDto> getFollowing(Long followerId) {
         List<Follow> follows = followRepository.findByFollowerId(followerId);
-        return follows.stream().map(follow -> follow.getFollowed()).collect(Collectors.toList());
+        // User 엔티티를 UserResponseDto로 변환하여 반환
+        return follows.stream()
+                .map(follow -> new UserResponseDto(follow.getFollowed()))
+                .collect(Collectors.toList());
     }
 }
