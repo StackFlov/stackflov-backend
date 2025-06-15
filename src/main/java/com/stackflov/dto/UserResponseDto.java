@@ -15,6 +15,7 @@ public class UserResponseDto {
     private final SocialType socialType;
     private final int level;
     private final Role role;
+    private final Boolean active; // <-- 이 부분을 추가해야 합니다.
     private final LocalDateTime createdAt;
 
     public UserResponseDto(User user) {
@@ -24,6 +25,7 @@ public class UserResponseDto {
         this.socialType = user.getSocialType();
         this.level = user.getLevel();
         this.role = user.getRole();
+        this.active = user.isActive(); // <-- user.isActive() 값을 가져와서 설정합니다.
         this.createdAt = user.getCreatedAt();
     }
 }

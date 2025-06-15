@@ -3,22 +3,17 @@ package com.stackflov.service;
 import com.stackflov.domain.Board;
 import com.stackflov.domain.BoardImage;
 import com.stackflov.domain.User;
-import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardRequestDto;
 import com.stackflov.dto.BoardResponseDto;
-import com.stackflov.dto.BoardUpdateRequestDto;
 import com.stackflov.repository.BoardImageRepository;
 import com.stackflov.repository.BoardRepository;
 import com.stackflov.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,102 +22,147 @@ import java.util.stream.Collectors;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final BoardImageRepository boardImageRepository;
     private final UserRepository userRepository;
+    private final BoardImageRepository boardImageRepository;
+    private final CommentService commentService; // ✅ CommentService 주입
 
-    public Long createBoard(String email, BoardRequestDto dto) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+    // 게시글 생성
+    @Transactional
+    public BoardResponseDto createBoard(String userEmail, BoardRequestDto requestDto) {
+        User user = userRepository.findByEmailAndActiveTrue(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 사용자만 게시글을 작성할 수 있습니다."));
 
         Board board = Board.builder()
-                .author(user)
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .category(dto.getCategory())
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
+                .category(requestDto.getCategory())
                 .viewCount(0)
+                .user(user)
                 .build();
 
-        Board saved = boardRepository.save(board);
-        List<BoardImage> images = dto.getImageUrls().stream()
-                .map(url -> BoardImage.builder()
-                        .board(saved)
-                        .imageUrl(url)
-                        .build())
-                .toList();
+        Board savedBoard = boardRepository.save(board);
 
-        boardImageRepository.saveAll(images);
+        if (requestDto.getImageUrls() != null && !requestDto.getImageUrls().isEmpty()) {
+            for (String imageUrl : requestDto.getImageUrls()) {
+                BoardImage boardImage = BoardImage.builder()
+                        .board(savedBoard)
+                        .imageUrl(imageUrl)
+                        .build();
+                savedBoard.addBoardImage(boardImage);
+            }
+            boardImageRepository.saveAll(savedBoard.getBoardImages());
+        }
 
-        return saved.getId();
+        return new BoardResponseDto(savedBoard);
     }
 
+    // 게시글 상세 조회 (조회수 증가 로직 포함)
+    @Transactional
     public BoardResponseDto getBoard(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        Board board = boardRepository.findByIdAndActiveTrue(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 게시글을 찾을 수 없습니다."));
 
-        List<String> imageUrls = board.getImages().stream()
-                .map(image -> image.getImageUrl())
-                .toList();
-
-        return BoardResponseDto.builder()
-                .id(board.getId())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .category(board.getCategory())
-                .authorEmail(board.getAuthor().getEmail())
-                .imageUrls(imageUrls)
-                .build();
-    }
-    public Page<BoardListResponseDto> getBoards(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Board> boards = boardRepository.findAll(pageable);
-
-        return boards.map(board -> BoardListResponseDto.builder()
-                .id(board.getId())
-                .title(board.getTitle())
-                .authorEmail(board.getAuthor().getEmail())
-                .category(board.getCategory())
-                .thumbnailUrl(board.getImages().isEmpty() ? null : board.getImages().get(0).getImageUrl())
-                .build());
+        board.incrementViewCount();
+        return new BoardResponseDto(board);
     }
 
+    // 게시글 목록 조회 (활성 상태인 게시글만 조회)
+    @Transactional(readOnly = true)
+    public Page<BoardResponseDto> getBoards(Pageable pageable) {
+        Page<Board> boards = boardRepository.findByActiveTrue(pageable);
+        return boards.map(BoardResponseDto::new);
+    }
+
+    // 게시글 수정
     @Transactional
-    public void updateBoard(String email, Long boardId, BoardUpdateRequestDto dto) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+    public BoardResponseDto updateBoard(Long boardId, String userEmail, BoardRequestDto requestDto) {
+        User user = userRepository.findByEmailAndActiveTrue(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 사용자만 게시글을 수정할 수 있습니다."));
 
-        if (!board.getAuthor().getEmail().equals(email)) {
-            throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+        Board board = boardRepository.findByIdAndActiveTrue(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 게시글을 찾을 수 없습니다."));
+
+        if (!board.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("자신이 작성한 게시글만 수정할 수 있습니다.");
         }
 
-        // 게시글 제목, 내용, 카테고리 수정
-        board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
+        board.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getCategory());
 
-        // 기존 이미지 삭제
-        boardImageRepository.deleteAll(board.getImages());
+        boardImageRepository.deleteAll(board.getBoardImages());
+        board.getBoardImages().clear();
 
-        // 이미지 URL이 null일 경우 빈 리스트 처리
-        List<BoardImage> newImages = (dto.getImageUrls() == null ? new ArrayList<>() : dto.getImageUrls()).stream()
-                .map(url -> BoardImage.builder()
+        if (requestDto.getImageUrls() != null && !requestDto.getImageUrls().isEmpty()) {
+            for (String imageUrl : requestDto.getImageUrls()) {
+                BoardImage boardImage = BoardImage.builder()
                         .board(board)
-                        .imageUrl((String) url)
-                        .build())
-                .collect(Collectors.toList());
-
-        // 새로운 이미지 URL을 저장
-        boardImageRepository.saveAll(newImages);
-    }
-
-
-    @Transactional
-    public void deleteBoard(String email, Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-
-        if (!board.getAuthor().getEmail().equals(email)) {
-            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+                        .imageUrl(imageUrl)
+                        .build();
+                board.addBoardImage(boardImage);
+            }
+            boardImageRepository.saveAll(board.getBoardImages());
         }
 
-        boardRepository.delete(board);
+        return new BoardResponseDto(board);
+    }
+
+    // 게시글 삭제 (실제 삭제 대신 비활성화)
+    @Transactional
+    public void deleteBoard(Long boardId, String userEmail) {
+        User user = userRepository.findByEmailAndActiveTrue(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 사용자만 게시글을 삭제할 수 있습니다."));
+
+        Board board = boardRepository.findByIdAndActiveTrue(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("활성화된 게시글을 찾을 수 없습니다."));
+
+        if (!board.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("자신이 작성한 게시글만 삭제할 수 있습니다.");
+        }
+
+        board.deactivate();
+
+        List<BoardImage> boardImages = boardImageRepository.findByBoard(board);
+        for (BoardImage image : boardImages) {
+            image.deactivate();
+        }
+        boardImageRepository.saveAll(boardImages);
+
+        // ✅ 게시글에 연관된 모든 댓글들도 비활성화
+        commentService.deactivateCommentsByBoard(board);
+    }
+
+    // 특정 사용자의 모든 게시글을 비활성화하는 메서드 (UserService에서 호출)
+    @Transactional
+    public void deactivateBoardsByUser(User user) {
+        List<Board> userBoards = boardRepository.findByUser(user);
+        for (Board board : userBoards) {
+            board.deactivate();
+
+            List<BoardImage> boardImages = boardImageRepository.findByBoard(board);
+            for (BoardImage image : boardImages) {
+                image.deactivate();
+            }
+            boardImageRepository.saveAll(boardImages);
+
+            // ✅ 게시글에 연관된 모든 댓글들도 비활성화
+            commentService.deactivateCommentsByBoard(board);
+        }
+    }
+
+    // 특정 사용자의 모든 게시글을 활성화하는 메서드 (UserService에서 호출)
+    @Transactional
+    public void activateBoardsByUser(User user) {
+        List<Board> userBoards = boardRepository.findByUser(user);
+        for (Board board : userBoards) {
+            board.activate();
+
+            List<BoardImage> boardImages = boardImageRepository.findByBoard(board);
+            for (BoardImage image : boardImages) {
+                image.activate();
+            }
+            boardImageRepository.saveAll(boardImages);
+
+            // ✅ 게시글에 연관된 모든 댓글들도 활성화
+            commentService.activateCommentsByBoard(board);
+        }
     }
 }

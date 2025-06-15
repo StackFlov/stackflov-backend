@@ -41,7 +41,7 @@ public class User {
 
     @Builder.Default
     @Column(nullable = false)
-    private boolean active = true;
+    private boolean active = true; 
 
     @Enumerated(EnumType.STRING)
     private Role role;  // 권한 (user, admin, guest)
@@ -63,4 +63,16 @@ public class User {
     public void setPassword(String password) {
         this.password = password;  // 암호화된 비밀번호를 저장
     }
+
+    // --- 새로운 메서드 추가 시작 ---
+    // 사용자 계정을 비활성화 상태로 변경합니다.
+    public void deactivate() {
+        this.active = false;
+    }
+
+    // 사용자 계정을 활성화 상태로 변경합니다.
+    public void activate() {
+        this.active = true;
+    }
+    // --- 새로운 메서드 추가 끝 ---
 }

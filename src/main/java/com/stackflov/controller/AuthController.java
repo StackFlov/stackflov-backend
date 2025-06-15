@@ -41,12 +41,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) { // ResponseEntity<?> 로 변경
         try {
             TokenResponseDto tokens = userService.login(loginRequestDto);
             return ResponseEntity.ok(tokens);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            // ✅ 수정된 부분: 400 Bad Request와 함께 에러 메시지를 반환
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     @PostMapping("/logout")

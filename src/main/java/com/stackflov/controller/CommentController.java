@@ -7,8 +7,8 @@ import com.stackflov.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
+// import org.springframework.security.core.context.SecurityContextHolder; // 사용하지 않으면 제거
+// import org.springframework.security.core.Authentication; // 사용하지 않으면 제거
 
 import java.util.List;
 
@@ -18,40 +18,46 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
-    private final JwtProvider jwtProvider;  // JwtProvider 주입
+    private final JwtProvider jwtProvider;
 
     // 댓글 작성
     @PostMapping
-    public ResponseEntity<Long> createComment(@RequestBody CommentRequestDto commentRequestDto,
-                                              @RequestHeader("Authorization") String accessToken) {
-        String userEmail = getEmailFromToken(accessToken);  // JWT에서 이메일 추출
-        Long commentId = commentService.createComment(commentRequestDto, userEmail);
-        return ResponseEntity.ok(commentId);
+    public ResponseEntity<CommentResponseDto> createComment(@RequestBody CommentRequestDto commentRequestDto, // 반환 타입 Long -> CommentResponseDto
+                                                            @RequestHeader("Authorization") String accessToken) {
+        String userEmail = getEmailFromToken(accessToken);
+        CommentResponseDto response = commentService.createComment(commentRequestDto, userEmail);
+        return ResponseEntity.ok(response);
     }
 
     // 댓글 수정
     @PutMapping("/{commentId}")
-    public ResponseEntity<Void> updateComment(@PathVariable Long commentId,
-                                              @RequestBody CommentRequestDto commentRequestDto,
-                                              @RequestHeader("Authorization") String accessToken) {
-        String userEmail = getEmailFromToken(accessToken);  // JWT에서 이메일 추출
-        commentService.updateComment(commentId, commentRequestDto.getTitle(), commentRequestDto.getContent(), userEmail);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long commentId, // 반환 타입 Void -> CommentResponseDto
+                                                            @RequestBody CommentRequestDto commentRequestDto,
+                                                            @RequestHeader("Authorization") String accessToken) {
+        String userEmail = getEmailFromToken(accessToken);
+        CommentResponseDto response = commentService.updateComment(commentId, commentRequestDto.getTitle(), commentRequestDto.getContent(), userEmail);
+        return ResponseEntity.ok(response);
     }
-    // 댓글 삭제
+
+    // 댓글 삭제 (실제 삭제 대신 비활성화)
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId,
                                               @RequestHeader("Authorization") String accessToken) {
-        String userEmail = getEmailFromToken(accessToken);  // JWT에서 이메일 추출
+        String userEmail = getEmailFromToken(accessToken);
         commentService.deleteComment(commentId, userEmail);
-        return ResponseEntity.noContent().build();  // 성공적으로 삭제된 경우 204 No Content 반환
+        return ResponseEntity.noContent().build();
     }
 
-    // JWT 토큰에서 이메일 추출 (JwtProvider의 getEmail 메서드 사용)
+    // ✅ 특정 게시글의 활성 댓글 조회 (기존 findByBoardId 대체)
+    @GetMapping("/board/{boardId}") // 기존 URL은 "/comments/board/{boardId}"
+    public ResponseEntity<List<CommentResponseDto>> getCommentsByBoard(@PathVariable Long boardId) {
+        List<CommentResponseDto> comments = commentService.getActiveCommentsByBoard(boardId);
+        return ResponseEntity.ok(comments);
+    }
+
+    // JWT 토큰에서 이메일 추출
     private String getEmailFromToken(String token) {
-        // "Bearer " 부분을 제거하고, JWT 토큰에서 이메일을 추출
         String jwtToken = token.replace("Bearer ", "");
-        return jwtProvider.getEmail(jwtToken);  // JwtProvider의 getEmail 메서드 사용
+        return jwtProvider.getEmail(jwtToken);
     }
 }
-
