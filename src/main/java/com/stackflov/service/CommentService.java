@@ -39,7 +39,6 @@ public class CommentService {
         Comment comment = Comment.builder()
                 .board(board)
                 .user(user)
-                .title(commentRequestDto.getTitle())   // title 설정
                 .content(commentRequestDto.getContent())  // content 설정
                 .build();
 
@@ -49,7 +48,7 @@ public class CommentService {
 
     // 댓글 수정
     @Transactional
-    public void updateComment(Long commentId, String title, String content, String userEmail) {
+    public void updateComment(Long commentId, String content, String userEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
 
@@ -58,8 +57,7 @@ public class CommentService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        // 댓글 제목과 내용 수정
-        comment.updateTitle(title);   // 제목 수정
+        // 댓글 내용 수정
         comment.updateContent(content);  // 내용 수정
     }
     // 댓글 삭제
@@ -74,6 +72,20 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);  // 댓글 삭제
+    }
+    // 게시글에 달린 모든 댓글 조회
+    @Transactional(readOnly = true)
+    public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
+        List<Comment> comments = commentRepository.findByBoardId(boardId);
+        return comments.stream()
+                .map(comment -> new CommentResponseDto(
+                        comment.getId(),
+                        comment.getContent(),
+                        comment.getUser().getEmail(),
+                        comment.getCreatedAt(),
+                        comment.getUpdatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }
 

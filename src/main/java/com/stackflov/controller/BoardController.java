@@ -1,9 +1,8 @@
 package com.stackflov.controller;
 
-import com.stackflov.domain.User;
-import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardRequestDto;
 import com.stackflov.dto.BoardResponseDto;
+import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardUpdateRequestDto;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.BoardService;
@@ -42,9 +41,10 @@ public class BoardController {
     @GetMapping
     public ResponseEntity<Page<BoardListResponseDto>> getBoards(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size  //10에서 바꾸고 싶을 때 여기서 바꾸면 됨
+            @RequestParam(defaultValue = "10") int size,
+            @RequestAttribute(value = "email", required = false) String email//10에서 바꾸고 싶을 때 여기서 바꾸면 됨
     ) {
-        Page<BoardListResponseDto> boards = boardService.getBoards(page, size);
+        Page<BoardListResponseDto> boards = boardService.getBoards(page, size, email);
         return ResponseEntity.ok(boards);
     }
     @PutMapping("/{boardId}")

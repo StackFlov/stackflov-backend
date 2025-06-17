@@ -2,6 +2,7 @@ package com.stackflov.controller;
 
 import com.stackflov.dto.BookmarkRequestDto;
 import com.stackflov.dto.BookmarkResponseDto;
+import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 public class BookmarkController {
 
     private final BookmarkService bookmarkService;
+    private final JwtProvider jwtProvider;
 
     // 북마크 추가 (POST /bookmarks)
     @PostMapping
@@ -54,9 +56,18 @@ public class BookmarkController {
     // 특정 게시글 북마크 여부 확인 (GET /bookmarks/board/{boardId}/check)
     @GetMapping("/board/{boardId}/check")
     public ResponseEntity<Boolean> isBookmarked(
-            @RequestAttribute("email") String userEmail,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long boardId) {
-        boolean bookmarked = bookmarkService.isBookmarked(userEmail, boardId);
+
+        String email = null;
+        if (token != null && token.startsWith("Bearer ")) {
+            String rawToken = token.substring(7);
+            if (jwtProvider.validateToken(rawToken)) {
+                email = jwtProvider.getEmail(rawToken);
+            }
+        }
+
+        boolean bookmarked = bookmarkService.isBookmarked(email, boardId); // email == null이면 비회원
         return ResponseEntity.ok(bookmarked);
     }
 }

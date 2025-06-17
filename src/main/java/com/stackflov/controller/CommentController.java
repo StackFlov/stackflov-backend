@@ -35,7 +35,7 @@ public class CommentController {
                                               @RequestBody CommentRequestDto commentRequestDto,
                                               @RequestHeader("Authorization") String accessToken) {
         String userEmail = getEmailFromToken(accessToken);  // JWT에서 이메일 추출
-        commentService.updateComment(commentId, commentRequestDto.getTitle(), commentRequestDto.getContent(), userEmail);
+        commentService.updateComment(commentId, commentRequestDto.getContent(), userEmail);
         return ResponseEntity.ok().build();
     }
     // 댓글 삭제
@@ -45,6 +45,13 @@ public class CommentController {
         String userEmail = getEmailFromToken(accessToken);  // JWT에서 이메일 추출
         commentService.deleteComment(commentId, userEmail);
         return ResponseEntity.noContent().build();  // 성공적으로 삭제된 경우 204 No Content 반환
+    }
+
+    // 게시글에 달린 모든 댓글 조회
+    @GetMapping("/board/{boardId}")
+    public ResponseEntity<List<CommentResponseDto>> getCommentsByBoard(@PathVariable Long boardId) {
+        List<CommentResponseDto> comments = commentService.getCommentsByBoardId(boardId);
+        return ResponseEntity.ok(comments);
     }
 
     // JWT 토큰에서 이메일 추출 (JwtProvider의 getEmail 메서드 사용)
