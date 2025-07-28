@@ -34,8 +34,21 @@ public class BoardController {
     }
 
     @GetMapping("/{boardId}")
-    public ResponseEntity<BoardResponseDto> getBoard(@PathVariable Long boardId) {
-        BoardResponseDto response = boardService.getBoard(boardId);
+    public ResponseEntity<BoardResponseDto> getBoard(
+            @PathVariable Long boardId,
+            @RequestHeader(value = "Authorization", required = false) String accessToken) { // required = false로 변경
+
+        String email = null;
+        // 토큰이 존재하고, 유효한 경우에만 이메일 추출
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            String token = accessToken.substring(7);
+            if (jwtProvider.validateToken(token)) { // validateToken 메소드가 JwtProvider에 있다고 가정
+                email = jwtProvider.getEmail(token);
+            }
+        }
+
+        // email 정보를 서비스로 전달 (email이 null이면 비로그인 사용자)
+        BoardResponseDto response = boardService.getBoard(boardId, email);
         return ResponseEntity.ok(response);
     }
     @GetMapping

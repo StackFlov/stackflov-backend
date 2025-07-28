@@ -8,10 +8,7 @@ import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.dto.BoardRequestDto;
 import com.stackflov.dto.BoardResponseDto;
 import com.stackflov.dto.BoardUpdateRequestDto;
-import com.stackflov.repository.BoardImageRepository;
-import com.stackflov.repository.BoardRepository;
-import com.stackflov.repository.BookmarkRepository;
-import com.stackflov.repository.UserRepository;
+import com.stackflov.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +31,7 @@ public class BoardService {
     private final BoardImageRepository boardImageRepository;
     private final UserRepository userRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final LikeRepository likeRepository;
 
     public Long createBoard(String email, BoardRequestDto dto) {
 
@@ -61,13 +59,32 @@ public class BoardService {
         return saved.getId();
     }
 
-    public BoardResponseDto getBoard(Long boardId) {
+    @Transactional
+    public BoardResponseDto getBoard(Long boardId, String email) {
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        board.increaseViewCount(); // 조회수 증가
+
+        long likeCount = likeRepository.countByBoard(board);
+        boolean isLiked = false;
+
+        // 로그인한 사용자(email != null)라면, 좋아요 여부 확인
+        if (email != null) {
+            // 이메일로 사용자를 찾고, 사용자가 존재하면 좋아요 여부를 확인
+            userRepository.findByEmail(email).ifPresent(user -> {
+                // isLiked 값을 직접 수정할 수 없으므로, 별도의 변수를 사용하거나 결과를 반환받아야 함
+                // 하지만 여기서는 isLiked가 외부 변수이므로 직접 접근이 안됨.
+                // 따라서 아래와 같이 수정하는 것이 더 안전함
+            });
+            // 위 람다식은 isLiked 변수를 직접 수정할 수 없어 문제가 되므로, 아래와 같이 간단하게 처리
+            isLiked = userRepository.findByEmail(email)
+                    .map(user -> likeRepository.existsByUserAndBoard(user, board))
+                    .orElse(false);
+        }
 
         List<String> imageUrls = board.getImages().stream()
-                .map(image -> image.getImageUrl())
-                .toList();
+                .map(BoardImage::getImageUrl)
+                .collect(Collectors.toList()); // .toList()도 가능
 
         return BoardResponseDto.builder()
                 .id(board.getId())
@@ -75,12 +92,14 @@ public class BoardService {
                 .content(board.getContent())
                 .category(board.getCategory())
                 .authorEmail(board.getAuthor().getEmail())
-                .authorNickname(board.getAuthor().getNickname())   // ✅ 추가
-                .authorId(board.getAuthor().getId())               // ✅ 추가
+                .authorNickname(board.getAuthor().getNickname())
+                .authorId(board.getAuthor().getId())
                 .imageUrls(imageUrls)
-                .viewCount(board.getViewCount())         // ✅ 추가
-                .createdAt(board.getCreatedAt())         // ✅ 추가
+                .viewCount(board.getViewCount())
+                .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
+                .likeCount(likeCount)
+                .isLiked(isLiked)
                 .build();
     }
     public Page<BoardListResponseDto> getBoards(int page, int size, String userEmail) {

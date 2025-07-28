@@ -19,4 +19,6 @@ public class BoardListResponseDto {
     private LocalDateTime createdAt;     // ← 있어야 하고
     private LocalDateTime updatedAt;
     private boolean isBookmarked;
+    private long likeCount;
+    private boolean isLiked;
 }
