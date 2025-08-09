@@ -43,7 +43,6 @@ public class BoardService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(dto.getCategory())
-                .viewCount(0)
                 .build();
 
         Board saved = boardRepository.save(board);
