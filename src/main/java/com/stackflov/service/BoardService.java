@@ -166,4 +166,12 @@ public class BoardService {
 
         boardRepository.delete(board);
     }
+
+    @Transactional
+    public void deleteBoardByAdmin(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 게시글이 존재하지 않습니다."));
+        boardRepository.delete(board);
+    }
+
 }

@@ -64,6 +64,8 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/reports").authenticated()
 
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

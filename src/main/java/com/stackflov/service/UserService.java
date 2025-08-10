@@ -21,8 +21,9 @@ public class UserService {
     private final RedisService redisService;
 
     public TokenResponseDto login(LoginRequestDto requestDto) {
-        User user = userRepository.findByEmail(requestDto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        // findByEmail 대신 findByEmailAndActiveTrue를 사용하여, 비활성 계정은 처음부터 조회되지 않도록 합니다.
+        User user = userRepository.findByEmailAndActiveTrue(requestDto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("이메일이 존재하지 않거나 비활성화된 계정입니다."));
 
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");

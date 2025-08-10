@@ -3,11 +3,11 @@ package com.stackflov.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reports", uniqueConstraints = {
-        // 한 사용자가 동일한 콘텐츠를 중복 신고하지 못하도록 제약조건 추가
         @UniqueConstraint(columnNames = {"reporter_id", "contentId", "contentType"})
 })
 @Getter
@@ -21,34 +21,53 @@ public class Report {
     @Column(name = "report_id")
     private Long id;
 
-    // 신고한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
 
-    // 신고된 콘텐츠의 ID (게시글 ID 또는 댓글 ID)
     @Column(nullable = false)
     private Long contentId;
 
-    // 신고된 콘텐츠의 종류 (게시글, 댓글 등)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReportType contentType;
 
-    // 신고 사유
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReportReason reason;
 
-    // 상세 사유 (선택 사항)
     @Lob
     private String details;
 
-    // 신고 처리 상태
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReportStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    // --- 아래 필드들을 추가합니다 ---
+
+    // 신고를 처리한 관리자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "processor_id")
+    private User processor;
+
+    // 관리자 메모
+    @Lob
+    private String adminComment;
+
+    // 처리 일시 (상태 변경 시 자동으로 업데이트됨)
+    @UpdateTimestamp
+    private LocalDateTime processedAt;
+
+    // === 신고 처리 비즈니스 메서드 추가 ===
+    public void process(User processor, ReportStatus status, String adminComment) {
+        if (this.status != ReportStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 신고입니다.");
+        }
+        this.processor = processor;
+        this.status = status;
+        this.adminComment = adminComment;
+    }
 }

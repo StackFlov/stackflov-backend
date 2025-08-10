@@ -87,5 +87,12 @@ public class CommentService {
                 ))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void deleteCommentByAdmin(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 댓글이 존재하지 않습니다."));
+        commentRepository.delete(comment);
+    }
 }
 

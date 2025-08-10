@@ -3,7 +3,7 @@ package com.stackflov.repository;
 import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-
+import com.stackflov.domain.Role;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailAndSocialType(String email, SocialType socialType);
 
     Optional<User> findByEmailAndActiveTrue(String email);
+
+    // 특정 역할을 가진 사용자의 수를 카운트하는 메서드 (추가)
+    long countByRole(Role role);
 }
