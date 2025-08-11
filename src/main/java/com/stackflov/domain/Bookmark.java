@@ -31,4 +31,14 @@ public class Bookmark {
 
     @CreationTimestamp
     private LocalDateTime createdAt; // 북마크 생성 일시
+
+    // --- 아래 필드를 추가합니다 ---
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
+    // === 비활성화를 위한 비즈니스 메서드 추가 ===
+    public void deactivate() {
+        this.active = false;
+    }
 }

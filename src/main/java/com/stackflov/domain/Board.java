@@ -51,6 +51,15 @@ public class Board {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
+    // === 비활성화를 위한 비즈니스 메서드 추가 ===
+    public void deactivate() {
+        this.active = false;
+    }
+
     // === 비즈니스 메서드 ===
     public void increaseViewCount() {
         this.viewCount++;

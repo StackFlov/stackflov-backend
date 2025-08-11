@@ -49,8 +49,8 @@ public class CommentService {
     // 댓글 수정
     @Transactional
     public void updateComment(Long commentId, String content, String userEmail) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글이 존재하지 않습니다."));
+        Comment comment = commentRepository.findByIdAndActiveTrue(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없거나 삭제되었습니다."));
 
         // 댓글 작성자가 아니라면 수정할 수 없음
         if (!comment.getUser().getEmail().equals(userEmail)) {
@@ -76,7 +76,7 @@ public class CommentService {
     // 게시글에 달린 모든 댓글 조회
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
-        List<Comment> comments = commentRepository.findByBoardId(boardId);
+        List<Comment> comments = commentRepository.findByBoardIdAndActiveTrue(boardId);
         return comments.stream()
                 .map(comment -> new CommentResponseDto(
                         comment.getId(),
@@ -93,6 +93,24 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("삭제할 댓글이 존재하지 않습니다."));
         commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public void deactivateOwnComment(Long commentId, String userEmail) {
+        Comment comment = commentRepository.findByIdAndActiveTrue(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없거나 이미 삭제되었습니다."));
+
+        if (!comment.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+        }
+        comment.deactivate(); // active를 false로 변경
+    }
+
+    @Transactional
+    public void deactivateCommentByAdmin(Long commentId) {
+        Comment comment = commentRepository.findById(commentId) // 관리자는 비활성화된 댓글도 찾을 수 있어야 함
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        comment.deactivate(); // active를 false로 변경
     }
 }
 

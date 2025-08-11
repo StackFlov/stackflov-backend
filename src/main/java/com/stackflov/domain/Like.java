@@ -31,4 +31,12 @@ public class Like {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
+    public void deactivate() {
+        this.active = false;
+    }
 }

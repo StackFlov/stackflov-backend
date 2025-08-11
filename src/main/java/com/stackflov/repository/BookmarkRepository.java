@@ -21,4 +21,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     // 특정 사용자가 특정 게시글을 북마크한 기록 삭제
     void deleteByUserAndBoard(User user, Board board);
+
+    Optional<Bookmark> findByUserAndBoardAndActiveTrue(User user, Board board);
+    List<Bookmark> findByUserAndActiveTrue(User user);
+
 }
