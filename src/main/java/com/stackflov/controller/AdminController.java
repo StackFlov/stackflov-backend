@@ -5,6 +5,9 @@ import com.stackflov.service.AdminService;
 import com.stackflov.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,5 +69,27 @@ public class AdminController {
     public ResponseEntity<DashboardStatsDto> getDashboardStats() {
         DashboardStatsDto stats = dashboardService.getDashboardStats();
         return ResponseEntity.ok(stats);
+    }
+    // 관리자용 게시글 검색 API
+    @GetMapping("/boards/search")
+    public ResponseEntity<Page<AdminBoardDto>> searchBoards(
+            @RequestParam String type,
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<AdminBoardDto> result = adminService.searchBoardsByAdmin(type, keyword, pageable);
+        return ResponseEntity.ok(result);
+    }
+
+    // 관리자용 댓글 검색 API
+    @GetMapping("/comments/search")
+    public ResponseEntity<Page<AdminCommentDto>> searchComments(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<AdminCommentDto> result = adminService.searchCommentsByAdmin(keyword, pageable);
+        return ResponseEntity.ok(result);
     }
 }
