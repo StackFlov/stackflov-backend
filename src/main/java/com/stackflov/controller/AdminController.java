@@ -2,6 +2,7 @@ package com.stackflov.controller;
 
 import com.stackflov.dto.*;
 import com.stackflov.service.AdminService;
+import com.stackflov.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final DashboardService dashboardService; // DashboardService 주입
 
     // 사용자 목록 조회 API
     @GetMapping("/users")
@@ -58,5 +60,11 @@ public class AdminController {
             @RequestAttribute("email") String adminEmail) {
         adminService.processReport(reportId, dto, adminEmail);
         return ResponseEntity.ok("신고가 처리되었습니다.");
+    }
+
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<DashboardStatsDto> getDashboardStats() {
+        DashboardStatsDto stats = dashboardService.getDashboardStats();
+        return ResponseEntity.ok(stats);
     }
 }

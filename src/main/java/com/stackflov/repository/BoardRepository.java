@@ -13,4 +13,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     // 활성화된 모든 게시글을 페이징하여 조회
     Page<Board> findAllByActiveTrue(Pageable pageable);
+    long countByActiveTrue();
 }

@@ -4,6 +4,8 @@ import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.stackflov.domain.Role;
+
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -18,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 특정 역할을 가진 사용자의 수를 카운트하는 메서드 (추가)
     long countByRole(Role role);
+
+    long countByCreatedAtAfter(LocalDateTime dateTime);
 }

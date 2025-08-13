@@ -13,4 +13,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     boolean existsByReporterAndContentIdAndContentType(User reporter, Long contentId, ReportType contentType);
     //특정 상태의 신고 목록을 페이징하여 조회
     Page<Report> findByStatus(ReportStatus status, Pageable pageable);
+
+    long countByStatus(ReportStatus status);
 }
