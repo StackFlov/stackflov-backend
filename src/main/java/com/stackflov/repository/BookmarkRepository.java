@@ -24,5 +24,4 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     Optional<Bookmark> findByUserAndBoardAndActiveTrue(User user, Board board);
     List<Bookmark> findByUserAndActiveTrue(User user);
-
 }

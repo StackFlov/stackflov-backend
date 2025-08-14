@@ -81,4 +81,10 @@ public class BookmarkService {
 
         return bookmarkRepository.findByUserAndBoard(user, board).isPresent();
     }
+
+    @Transactional
+    public void deactivateAllBookmarksByUser(User user) {
+        List<Bookmark> bookmarks = bookmarkRepository.findByUser(user);
+        bookmarks.forEach(Bookmark::deactivate);
+    }
 }

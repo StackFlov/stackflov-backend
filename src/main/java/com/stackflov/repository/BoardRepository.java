@@ -1,12 +1,14 @@
 package com.stackflov.repository;
 
 import com.stackflov.domain.Board;
+import com.stackflov.domain.User;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
@@ -21,4 +23,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             "(:type = 'content' AND b.content LIKE %:keyword%) OR " +
             "(:type = 'author' AND b.author.nickname LIKE %:keyword%)")
     Page<Board> searchAllBy(@Param("type") String type, @Param("keyword") String keyword, Pageable pageable);
+
+    Page<Board> findByAuthor(User author, Pageable pageable);
 }

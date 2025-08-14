@@ -1,6 +1,7 @@
 package com.stackflov.repository;
 
 import com.stackflov.domain.Follow;
+import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,4 +17,9 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     // 특정 유저를 팔로우하는 모든 유저 조회
     List<Follow> findByFollowedId(Long followedId);
+    // [추가] 특정 사용자가 팔로우하는 관계 조회 (내가 남을)
+    List<Follow> findByFollower(User follower);
+
+    // [추가] 특정 사용자를 팔로우하는 관계 조회 (남이 나를)
+    List<Follow> findByFollowed(User followed);
 }

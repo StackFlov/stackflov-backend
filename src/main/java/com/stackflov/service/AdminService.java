@@ -24,6 +24,8 @@ public class AdminService {
     private final CommentService commentService;
     private final BoardRepository boardRepository; // 추가
     private final CommentRepository commentRepository;
+    private final BookmarkService bookmarkService;
+    private final FollowService followService;
 
     // 모든 사용자 목록 조회
     @Transactional(readOnly = true)
@@ -54,20 +56,30 @@ public class AdminService {
 
     // 사용자 계정 상태 변경 (활성/비활성)
     @Transactional
-    public void updateUserStatus(Long userId, UserStatUpdateRequestDto dto, String adminEmail) { // [수정] DTO 이름을 변경된 이름으로 수정
+    public void updateUserStatus(Long userId, UserStatUpdateRequestDto dto, String adminEmail) {
         User targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        // ... 기존의 자기 자신, 마지막 관리자 보호 로직 ...
         if (targetUser.getEmail().equals(adminEmail)) {
             throw new IllegalArgumentException("자신의 계정 상태는 변경할 수 없습니다.");
         }
-
         if (targetUser.getRole() == Role.ADMIN && !dto.isActive() && userRepository.countByRole(Role.ADMIN) <= 1) {
             throw new IllegalStateException("마지막 남은 관리자는 비활성화할 수 없습니다.");
         }
 
+        // --- 이 부분이 핵심 로직입니다 ---
+        // 1. 계정 상태 변경
         User updatedUser = buildUserWithNewStatus(targetUser, dto.isActive());
         userRepository.save(updatedUser);
+
+        // 2. 만약 '비활성화' 하는 경우라면, 모든 연관 데이터를 함께 처리
+        if (!dto.isActive()) {
+            commentService.deactivateAllCommentsByUser(targetUser);
+            boardService.deactivateAllBoardsByUser(targetUser);
+            bookmarkService.deactivateAllBookmarksByUser(targetUser);
+            followService.deactivateAllFollowsByUser(targetUser);
+        }
     }
 
     // --- Helper Methods ---
@@ -145,6 +157,26 @@ public class AdminService {
         } else if (contentType == ReportType.COMMENT) {
             commentService.deactivateCommentByAdmin(contentId);
         }
+    }
+
+    // 특정 사용자가 작성한 모든 게시글 목록 조회
+    @Transactional(readOnly = true)
+    public Page<AdminBoardDto> getBoardsByUser(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Page<Board> boards = boardRepository.findByAuthor(user, pageable);
+        return boards.map(AdminBoardDto::new); // 기존 AdminBoardDto 재사용
+    }
+
+    // 특정 사용자가 작성한 모든 댓글 목록 조회
+    @Transactional(readOnly = true)
+    public Page<AdminCommentDto> getCommentsByUser(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Page<Comment> comments = commentRepository.findByUser(user, pageable);
+        return comments.map(AdminCommentDto::new); // 기존 AdminCommentDto 재사용
     }
 
 }

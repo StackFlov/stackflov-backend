@@ -74,4 +74,15 @@ public class FollowService {
                 .map(follow -> new UserResponseDto(follow.getFollowed()))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void deactivateAllFollowsByUser(User user) {
+        // 내가 다른 사람을 팔로우한 기록 비활성화
+        List<Follow> followingList = followRepository.findByFollower(user);
+        followingList.forEach(Follow::deactivate);
+
+        // 다른 사람이 나를 팔로우한 기록 비활성화
+        List<Follow> followerList = followRepository.findByFollowed(user);
+        followerList.forEach(Follow::deactivate);
+    }
 }

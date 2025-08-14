@@ -112,5 +112,11 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
         comment.deactivate(); // active를 false로 변경
     }
+    // [추가] 특정 사용자의 모든 댓글을 비활성화
+    @Transactional
+    public void deactivateAllCommentsByUser(User user) {
+        List<Comment> comments = commentRepository.findByUser(user);
+        comments.forEach(Comment::deactivate); // 댓글은 연관 데이터가 없으므로 간단히 처리
+    }
 }
 

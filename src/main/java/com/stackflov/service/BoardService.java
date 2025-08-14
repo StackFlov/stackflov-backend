@@ -177,4 +177,13 @@ public class BoardService {
         List<Like> likes = likeRepository.findByBoard(board);
         likes.forEach(Like::deactivate);
     }
+    // [추가] 특정 사용자의 모든 게시글을 비활성화
+    @Transactional
+    public void deactivateAllBoardsByUser(User user) {
+        List<Board> boards = boardRepository.findByAuthor(user);
+        for (Board board : boards) {
+            // 이전에 만든, 연관 데이터까지 함께 비활성화하는 메서드를 재사용
+            deactivateBoardAndAssociations(board);
+        }
+    }
 }

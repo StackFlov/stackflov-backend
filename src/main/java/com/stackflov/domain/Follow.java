@@ -31,4 +31,13 @@ public class Follow {
 
     @CreationTimestamp
     private LocalDateTime createdAt;  // 팔로우 관계 생성 시각
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
+    // === 비활성화를 위한 비즈니스 메서드 추가 ===
+    public void deactivate() {
+        this.active = false;
+    }
 }

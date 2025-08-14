@@ -92,4 +92,25 @@ public class AdminController {
         Page<AdminCommentDto> result = adminService.searchCommentsByAdmin(keyword, pageable);
         return ResponseEntity.ok(result);
     }
+    // 특정 사용자가 작성한 모든 게시글 목록 조회 API
+    @GetMapping("/users/{userId}/boards")
+    public ResponseEntity<Page<AdminBoardDto>> getBoardsByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<AdminBoardDto> boards = adminService.getBoardsByUser(userId, pageable);
+        return ResponseEntity.ok(boards);
+    }
+
+    // 특정 사용자가 작성한 모든 댓글 목록 조회 API
+    @GetMapping("/users/{userId}/comments")
+    public ResponseEntity<Page<AdminCommentDto>> getCommentsByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<AdminCommentDto> comments = adminService.getCommentsByUser(userId, pageable);
+        return ResponseEntity.ok(comments);
+    }
 }
