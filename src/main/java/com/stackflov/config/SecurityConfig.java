@@ -3,6 +3,8 @@ package com.stackflov.config;
 import com.stackflov.jwt.JwtAuthenticationEntryPoint;
 import com.stackflov.jwt.JwtFilter;
 import com.stackflov.jwt.JwtProvider;
+import com.stackflov.jwt.OAuth2AuthenticationSuccessHandler;
+import com.stackflov.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,9 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;  // 빈 주입
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -73,6 +78,12 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService) // 사용자 정보 처리 서비스
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler) // 인증 성공 핸들러
+                )
                 .build();
     }
     @Bean
