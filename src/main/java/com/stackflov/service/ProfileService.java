@@ -1,0 +1,52 @@
+package com.stackflov.service;
+
+import com.stackflov.domain.Board;
+import com.stackflov.domain.User;
+import com.stackflov.dto.BoardListResponseDto;
+import com.stackflov.dto.UserProfileDto;
+import com.stackflov.repository.BoardRepository;
+import com.stackflov.repository.LikeRepository;
+import com.stackflov.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class ProfileService {
+
+    private final UserRepository userRepository;
+    private final BoardRepository boardRepository;
+    private final LikeRepository likeRepository; // BoardListResponseDto를 위해 필요
+
+    // 사용자 프로필 정보 조회
+    @Transactional(readOnly = true)
+    public UserProfileDto getUserProfile(Long userId) {
+        User user = userRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없거나 비활성화된 계정입니다."));
+        return new UserProfileDto(user);
+    }
+
+    // 특정 사용자가 작성한 게시글 목록 조회
+    @Transactional(readOnly = true)
+    public Page<BoardListResponseDto> getBoardsByUser(Long userId, Pageable pageable) {
+        User user = userRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없거나 비활성화된 계정입니다."));
+
+        Page<Board> boards = boardRepository.findByAuthorAndActiveTrue(user, pageable);
+
+        // 기존 BoardListResponseDto를 재사용하여 변환
+        return boards.map(board -> BoardListResponseDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .authorNickname(board.getAuthor().getNickname())
+                .authorId(board.getAuthor().getId())
+                .thumbnailUrl(board.getImages().isEmpty() ? null : board.getImages().get(0).getImageUrl())
+                .viewCount(board.getViewCount())
+                .likeCount(likeRepository.countByBoardAndActiveTrue(board))
+                .createdAt(board.getCreatedAt())
+                .build());
+    }
+}

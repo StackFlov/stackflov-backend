@@ -67,6 +67,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/bookmarks/my").authenticated() // 내 북마크 조회 (인증된 회원만)
                         .requestMatchers(HttpMethod.GET, "/bookmarks/board/**").permitAll() // 특정 게시글 북마크 여부 확인 (비회원도 가능)
 
+                        .requestMatchers(HttpMethod.GET, "/profiles/**").authenticated() // 프로필 페이지
+
                         .requestMatchers(HttpMethod.POST, "/reports").authenticated()
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")

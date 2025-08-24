@@ -25,4 +25,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> searchAllBy(@Param("type") String type, @Param("keyword") String keyword, Pageable pageable);
 
     Page<Board> findByAuthor(User author, Pageable pageable);
+
+    Page<Board> findByAuthorAndActiveTrue(User author, Pageable pageable);
 }

@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByRole(Role role);
 
     long countByCreatedAtAfter(LocalDateTime dateTime);
+
+    Optional<User> findByIdAndActiveTrue(Long id);
 }
