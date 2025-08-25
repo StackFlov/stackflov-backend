@@ -26,4 +26,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> searchAllBy(@Param("keyword") String keyword, Pageable pageable);
 
     Page<Comment> findByUser(User user, Pageable pageable);
+
+    List<Comment> findByUser(User user);
 }

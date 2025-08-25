@@ -27,4 +27,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findByAuthor(User author, Pageable pageable);
 
     Page<Board> findByAuthorAndActiveTrue(User author, Pageable pageable);
+
+    List<Board> findByAuthor(User author);
+
 }
