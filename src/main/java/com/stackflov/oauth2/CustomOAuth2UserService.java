@@ -25,21 +25,30 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        OAuth2UserInfo oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
+        OAuth2UserInfo oAuth2UserInfo;
+
+        if (registrationId.equals("google")) {
+            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        } else if (registrationId.equals("kakao")) {
+            oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        } else {
+            oAuth2UserInfo = null;
+        }
         User user = userRepository.findByEmail(oAuth2UserInfo.getEmail())
-                .orElseGet(() -> registerNewUser(oAuth2UserInfo));
+                .orElseGet(() -> registerNewUser(oAuth2UserInfo, registrationId));
 
         return new CustomOAuth2User(user, oAuth2User.getAttributes());
     }
 
-    private User registerNewUser(OAuth2UserInfo userInfo) {
+    private User registerNewUser(OAuth2UserInfo userInfo, String registrationId) {
         User newUser = User.builder()
                 .email(userInfo.getEmail())
                 .nickname(userInfo.getName())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 소셜 로그인은 비밀번호가 무의미
                 .role(Role.USER)
-                .socialType(SocialType.GOOGLE)
+                .socialType(SocialType.valueOf(registrationId.toUpperCase()))
                 .socialId(userInfo.getProviderId())
                 .active(true)
                 .build();
