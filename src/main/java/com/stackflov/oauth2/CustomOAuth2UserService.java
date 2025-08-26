@@ -33,6 +33,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
         } else if (registrationId.equals("kakao")) {
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        } else if (registrationId.equals("naver")) { // 👈 이 부분을 추가합니다.
+            oAuth2UserInfo = new NaverUserInfo(oAuth2User.getAttributes());
         } else {
             oAuth2UserInfo = null;
         }
@@ -43,9 +45,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private User registerNewUser(OAuth2UserInfo userInfo, String registrationId) {
+        String profileImage = null;
+        // 네이버 사용자 정보일 경우에만 프로필 이미지 가져오기
+        if (userInfo instanceof NaverUserInfo) {
+            profileImage = ((NaverUserInfo) userInfo).getProfileImage();
+        }
         User newUser = User.builder()
                 .email(userInfo.getEmail())
                 .nickname(userInfo.getName())
+                .profileImage(profileImage)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 소셜 로그인은 비밀번호가 무의미
                 .role(Role.USER)
                 .socialType(SocialType.valueOf(registrationId.toUpperCase()))
