@@ -26,6 +26,7 @@ public class BoardService {
     private final UserRepository userRepository;
     private final BookmarkRepository bookmarkRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public Long createBoard(String email, BoardRequestDto dto) {
@@ -156,6 +157,20 @@ public class BoardService {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
         board.deactivate(); // active를 false로 변경
+
+        List<Comment> comments = commentRepository.findByBoardId(boardId);
+        for (Comment comment : comments) {
+            comment.deactivate();
+        }
+        List<Bookmark> bookmarks = bookmarkRepository.findByBoard(board);
+        for (Bookmark bookmark : bookmarks) {
+            bookmark.deactivate();
+        }
+
+        List<Like> likes = likeRepository.findByBoard(board);
+        for (Like like : likes) {
+            like.deactivate();
+        }
     }
 
     @Transactional

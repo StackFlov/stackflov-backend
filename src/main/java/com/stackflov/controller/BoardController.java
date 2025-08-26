@@ -70,16 +70,14 @@ public class BoardController {
         boardService.updateBoard(email, boardId, dto);
         return ResponseEntity.ok().build();
     }
-/*
+
     @DeleteMapping("/{boardId}")
     public ResponseEntity<?> deleteBoard(@PathVariable Long boardId,
                                          @RequestHeader("Authorization") String accessToken) {
         String token = accessToken.replace("Bearer ", "");
         String email = jwtProvider.getEmail(token);
 
-        boardService.deleteBoard(email, boardId);
+        boardService.deactivateOwnBoard(email, boardId);
         return ResponseEntity.noContent().build();
     }
-
- */
 }

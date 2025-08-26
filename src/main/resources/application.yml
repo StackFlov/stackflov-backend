@@ -3,7 +3,7 @@ server:
 
 spring:
   config:
-    import: optional:file:.env
+    import: optional:file:.env[.properties]
   profiles:
     active: dev
   datasource:
@@ -64,8 +64,8 @@ jwt:
 springdoc:
   api-docs:
     path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
+#  swagger-ui:
+#    path: /swagger-ui.html
   default-consumes-media-type: application/json;charset=UTF-8
   default-produces-media-type: application/json;charset=UTF-8
 
@@ -92,6 +92,9 @@ spring:
   config:
     activate:
       on-profile: prod
+springdoc:
+  swagger-ui:
+    enabled: false
 app:
   oauth:
     redirect-uri: https://[내 도메인 주소]/oauth-redirect
