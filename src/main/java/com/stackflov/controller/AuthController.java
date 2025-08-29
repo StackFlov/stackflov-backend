@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.stackflov.service.SmsService;
 
 @RestController
 @RequestMapping("/auth")
@@ -18,6 +19,7 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
     private final EmailService emailService;
+    private final SmsService smsService;
 
     @PostMapping("/reissue")
     public ResponseEntity<TokenResponseDto> reissue(@RequestBody ReissueRequest request) {
@@ -67,6 +69,21 @@ public class AuthController {
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일 인증 실패");
     }
 
+    @PostMapping("/phone/send")
+    public ResponseEntity<String> sendSmsCode(@RequestBody PhoneRequestDto requestDto) {
+        smsService.sendVerificationCode(requestDto.getPhoneNumber());
+        return ResponseEntity.ok("인증번호가 발송되었습니다.");
+    }
+
+    @PostMapping("/phone/verify")
+    public ResponseEntity<String> verifySmsCode(@RequestBody PhoneVerifyRequestDto requestDto) {
+        boolean isVerified = smsService.verifyCode(requestDto.getPhoneNumber(), requestDto.getCode());
+        if (isVerified) {
+            return ResponseEntity.ok("전화번호 인증에 성공했습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증번호가 일치하지 않습니다.");
+        }
+    }
 }
 
 // DTO for refresh token request

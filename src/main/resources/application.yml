@@ -113,6 +113,13 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
 
+ncloud:
+  sms:
+    access-key: ${NCP_ACCESS_KEY}
+    secret-key: ${NCP_SECRET_KEY}
+    service-id: ${NCP_SERVICE_ID}
+    sender-phone: ${SENDER_PHONE_NUMBER}
+
 ---
 # 'dev' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
 spring:
