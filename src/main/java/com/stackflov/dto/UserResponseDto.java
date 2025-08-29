@@ -27,7 +27,7 @@ public class UserResponseDto {
         this.level = user.getLevel();
         this.role = user.getRole();
         this.createdAt = user.getCreatedAt();
-        this.phoneNumber = user.getPhoneNumber(); // 👈 추가
+        this.phoneNumber = user.getPhoneNumber();
         this.address = user.getAddress();
     }
 }

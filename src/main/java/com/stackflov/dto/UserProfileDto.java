@@ -9,13 +9,15 @@ public class UserProfileDto {
     private final String nickname;
     private final String profileImage;
     private final int level;
-    // (추후 확장) private final long followerCount;
-    // (추후 확장) private final long followingCount;
+    private final long followerCount;
+    private final long followingCount;
 
-    public UserProfileDto(User user) {
+    public UserProfileDto(User user, long followerCount, long followingCount) {
         this.userId = user.getId();
         this.nickname = user.getNickname();
         this.profileImage = user.getProfileImage();
         this.level = user.getLevel();
+        this.followerCount = followerCount;
+        this.followingCount = followingCount;
     }
 }

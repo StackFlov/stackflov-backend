@@ -22,4 +22,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     // [추가] 특정 사용자를 팔로우하는 관계 조회 (남이 나를)
     List<Follow> findByFollowed(User followed);
+
+    long countByFollowedId(Long followedId); // 나를 팔로우하는 사람(팔로워) 수
+    long countByFollowerId(Long followerId);
 }
