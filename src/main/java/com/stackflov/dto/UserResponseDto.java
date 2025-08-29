@@ -16,6 +16,8 @@ public class UserResponseDto {
     private final int level;
     private final Role role;
     private final LocalDateTime createdAt;
+    private final String phoneNumber;
+    private final String address;
 
     public UserResponseDto(User user) {
         this.email = user.getEmail();
@@ -25,5 +27,7 @@ public class UserResponseDto {
         this.level = user.getLevel();
         this.role = user.getRole();
         this.createdAt = user.getCreatedAt();
+        this.phoneNumber = user.getPhoneNumber(); // 👈 추가
+        this.address = user.getAddress();
     }
 }

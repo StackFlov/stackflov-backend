@@ -21,7 +21,6 @@ public class UserService {
     private final RedisService redisService;
 
     public TokenResponseDto login(LoginRequestDto requestDto) {
-        // findByEmail 대신 findByEmailAndActiveTrue를 사용하여, 비활성 계정은 처음부터 조회되지 않도록 합니다.
         User user = userRepository.findByEmailAndActiveTrue(requestDto.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일이 존재하지 않거나 비활성화된 계정입니다."));
 
@@ -60,6 +59,8 @@ public class UserService {
                 .socialId(signupRequestDto.getSocialId())
                 .level(signupRequestDto.getLevel())
                 .role(signupRequestDto.getRole() != null ? signupRequestDto.getRole() : Role.USER)
+                .phoneNumber(signupRequestDto.getPhoneNumber())
+                .address(signupRequestDto.getAddress())
                 .build();
 
         userRepository.save(user);

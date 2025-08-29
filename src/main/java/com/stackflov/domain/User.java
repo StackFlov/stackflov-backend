@@ -52,6 +52,10 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    private String phoneNumber; // 👈 전화번호 필드 추가
+
+    private String address;
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }

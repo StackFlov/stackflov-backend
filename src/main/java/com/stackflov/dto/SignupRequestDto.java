@@ -16,4 +16,6 @@ public class SignupRequestDto {
     private String socialId;         // 소셜 고유 ID
     private int level;               // 등급
     private Role role;               // 역할 (USER, ADMIN, GUEST)
+    private String phoneNumber;
+    private String address;
 }

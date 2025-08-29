@@ -1,10 +1,8 @@
 package com.stackflov.controller;
 
 import com.stackflov.dto.*;
-import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.AuthService;
 import com.stackflov.service.EmailService;
-import com.stackflov.service.RedisService;
 import com.stackflov.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
