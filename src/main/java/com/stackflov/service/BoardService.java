@@ -1,11 +1,9 @@
 package com.stackflov.service;
 
 import com.stackflov.domain.*;
-import com.stackflov.dto.BoardListResponseDto;
-import com.stackflov.dto.BoardRequestDto;
-import com.stackflov.dto.BoardResponseDto;
-import com.stackflov.dto.BoardUpdateRequestDto;
+import com.stackflov.dto.*;
 import com.stackflov.repository.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -200,5 +198,11 @@ public class BoardService {
             // 이전에 만든, 연관 데이터까지 함께 비활성화하는 메서드를 재사용
             deactivateBoardAndAssociations(board);
         }
+    }
+    @Transactional(readOnly = true)
+    public Page<BoardResponseDto> searchBoards(BoardSearchConditionDto condition, Pageable pageable) {
+        Specification<Board> spec = BoardSpecification.search(condition);
+        Page<Board> boards = boardRepository.findAll(spec, pageable);
+        return boards.map(BoardResponseDto::new);
     }
 }

@@ -1,13 +1,11 @@
 package com.stackflov.controller;
 
-import com.stackflov.dto.BoardRequestDto;
-import com.stackflov.dto.BoardResponseDto;
-import com.stackflov.dto.BoardListResponseDto;
-import com.stackflov.dto.BoardUpdateRequestDto;
+import com.stackflov.dto.*;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,5 +77,13 @@ public class BoardController {
 
         boardService.deactivateOwnBoard(email, boardId);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/boards/search")
+    public ResponseEntity<Page<BoardResponseDto>> searchBoards(
+            @ModelAttribute BoardSearchConditionDto condition,
+            Pageable pageable
+    ) {
+        Page<BoardResponseDto> results = boardService.searchBoards(condition, pageable);
+        return ResponseEntity.ok(results);
     }
 }
