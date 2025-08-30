@@ -77,6 +77,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                        .requestMatchers("/feed").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

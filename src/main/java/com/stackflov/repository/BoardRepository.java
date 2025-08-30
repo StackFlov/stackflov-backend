@@ -31,4 +31,5 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
 
     List<Board> findByAuthor(User author);
 
+    Page<Board> findByAuthorInOrderByCreatedAtDesc(List<User> authors, Pageable pageable);
 }
