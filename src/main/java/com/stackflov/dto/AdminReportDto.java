@@ -14,8 +14,11 @@ public class AdminReportDto {
     private final ReportStatus status;
     private final String reporterNickname;
     private final LocalDateTime createdAt;
+    private final Long reportedUserId;
+    private final String reportedUserNickname;
+    private final int reportedUserReportCount;
 
-    public AdminReportDto(Report report) {
+    public AdminReportDto(Report report, User reportedUser) {
         this.reportId = report.getId();
         this.contentId = report.getContentId();
         this.contentType = report.getContentType();
@@ -24,5 +27,8 @@ public class AdminReportDto {
         this.status = report.getStatus();
         this.reporterNickname = report.getReporter().getNickname();
         this.createdAt = report.getCreatedAt();
+        this.reportedUserId = reportedUser.getId();
+        this.reportedUserNickname = reportedUser.getNickname();
+        this.reportedUserReportCount = reportedUser.getReportCount();
     }
 }

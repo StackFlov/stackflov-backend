@@ -56,6 +56,10 @@ public class User {
 
     private String address;
 
+    private int reportCount;
+
+    private LocalDateTime suspensionEndDate;
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }

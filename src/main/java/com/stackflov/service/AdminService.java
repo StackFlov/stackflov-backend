@@ -106,7 +106,7 @@ public class AdminService {
     public Page<AdminReportDto> getPendingReports(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Report> reports = reportRepository.findByStatus(ReportStatus.PENDING, pageable);
-        return reports.map(AdminReportDto::new);
+        return reports.map(this::convertReportToAdminDto);
     }
 
     // 신고 처리
@@ -178,5 +178,22 @@ public class AdminService {
         Page<Comment> comments = commentRepository.findByUser(user, pageable);
         return comments.map(AdminCommentDto::new); // 기존 AdminCommentDto 재사용
     }
+    private AdminReportDto convertReportToAdminDto(Report report) {
+        User reportedUser = findReportedUser(report);
+        return new AdminReportDto(report, reportedUser);
+    }
 
+    private User findReportedUser(Report report) {
+        if (report.getContentType() == ReportType.BOARD) {
+            return boardRepository.findById(report.getContentId())
+                    .orElseThrow(() -> new IllegalArgumentException("신고된 게시글을 찾을 수 없습니다."))
+                    .getAuthor();
+        } else if (report.getContentType() == ReportType.COMMENT) {
+            return commentRepository.findById(report.getContentId())
+                    .orElseThrow(() -> new IllegalArgumentException("신고된 댓글을 찾을 수 없습니다."))
+                    .getUser();
+        }
+        // 이 외의 타입이 있다면 예외 처리
+        throw new IllegalArgumentException("지원하지 않는 신고 타입입니다.");
+    }
 }
