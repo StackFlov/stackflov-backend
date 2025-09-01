@@ -211,6 +211,23 @@ public class BoardService {
     public Page<BoardResponseDto> searchBoards(BoardSearchConditionDto condition, Pageable pageable) {
         Specification<Board> spec = BoardSpecification.search(condition);
         Page<Board> boards = boardRepository.findAll(spec, pageable);
-        return boards.map(BoardResponseDto::new);
+        return boards.map(board -> BoardResponseDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .category(board.getCategory())
+                .authorEmail(board.getAuthor().getEmail())
+                .authorNickname(board.getAuthor().getNickname())
+                .authorId(board.getAuthor().getId())
+                .viewCount(board.getViewCount())
+                .createdAt(board.getCreatedAt())
+                .updatedAt(board.getUpdatedAt())
+                .imageUrls(board.getImages().stream()
+                        .map(BoardImage::getImageUrl)
+                        .collect(Collectors.toList()))
+                // 검색 결과에서는 좋아요 수나 여부를 보여주지 않을 경우 0, false로 처리
+                .likeCount(0)
+                .isLiked(false)
+                .build());
     }
 }
