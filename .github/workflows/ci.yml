@@ -2,7 +2,10 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "develop/**" ] 
+    branches:
+      - "master" 
+      - "develop"
+      - "feature2"
 
 jobs:
   build-and-push-docker-image:
