@@ -37,3 +37,20 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stackflov:latest
+
+  deploy-to-ec2:
+    needs: build-and-push-docker-image # build 작업이 성공해야만 실행
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} # .env 파일 대신 시크릿 사용
+            cd /home/ubuntu/app # EC2에 생성한 파일들이 있는 경로
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stackflov:latest
+            bash deploy.sh
