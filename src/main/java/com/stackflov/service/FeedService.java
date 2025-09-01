@@ -6,6 +6,7 @@ import com.stackflov.domain.User;
 import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.repository.BoardRepository;
 import com.stackflov.repository.FollowRepository;
+import com.stackflov.repository.LikeRepository;
 import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class FeedService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final BoardRepository boardRepository;
+    private final LikeRepository likeRepository;
 
     public Page<BoardListResponseDto> getFeed(String userEmail, Pageable pageable) {
         // 1. 현재 로그인한 사용자 정보를 가져옵니다.
@@ -40,6 +42,21 @@ public class FeedService {
         Page<Board> feedBoards = boardRepository.findByAuthorInOrderByCreatedAtDesc(followingUsers, pageable);
 
         // 4. 조회된 게시글들을 DTO로 변환하여 반환합니다.
-        return feedBoards.map(board -> new BoardListResponseDto(board)); // BoardListResponseDto에 Board를 받는 생성자 필요
+        return feedBoards.map(board -> BoardListResponseDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .authorEmail(board.getAuthor().getEmail())
+                .authorNickname(board.getAuthor().getNickname())
+                .authorId(board.getAuthor().getId())
+                .category(board.getCategory())
+                .thumbnailUrl(board.getImages().isEmpty() ? null : board.getImages().get(0).getImageUrl())
+                .viewCount(board.getViewCount())
+                .createdAt(board.getCreatedAt())
+                .updatedAt(board.getUpdatedAt())
+                .likeCount(likeRepository.countByBoardAndActiveTrue(board)) // 좋아요 수 계산
+                // 피드에서는 isBookmarked, isLiked는 false로 표시 (성능 고려)
+                .isBookmarked(false)
+                .isLiked(false)
+                .build());
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.crypto.Mac;
@@ -82,7 +83,11 @@ public class SmsService {
                     .defaultHeader("x-ncp-apigw-timestamp", String.valueOf(timestamp))
                     .defaultHeader("x-ncp-iam-access-key", this.accessKey)
                     .defaultHeader("x-ncp-apigw-signature-v2", signature)
-                    .encoder(new Jackson2JsonEncoder(objectMapper, MediaType.APPLICATION_JSON))
+                    .exchangeStrategies(ExchangeStrategies.builder()
+                            .codecs(configurer -> configurer
+                                    .defaultCodecs()
+                                    .jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper, MediaType.APPLICATION_JSON)))
+                            .build())
                     .build();
 
             webClient.post()

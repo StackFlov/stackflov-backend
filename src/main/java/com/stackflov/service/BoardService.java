@@ -50,6 +50,7 @@ public class BoardService {
         return savedBoard.getId();
     }
 
+
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
         Board board = boardRepository.findByIdAndActiveTrue(boardId)
@@ -65,6 +66,7 @@ public class BoardService {
                 .map(BoardImage::getImageUrl)
                 .collect(Collectors.toList());
 
+        // 👇 Board 엔티티를 BoardResponseDto로 변환합니다.
         return BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -81,21 +83,26 @@ public class BoardService {
                 .isLiked(isLiked)
                 .build();
     }
+
     @Transactional(readOnly = true)
     public Page<BoardListResponseDto> getBoards(int page, int size, String userEmail) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Board> boards = boardRepository.findAllByActiveTrue(pageable);
 
+        // 사용자가 로그인한 경우, 북마크한 게시글 ID 목록을 미리 준비합니다.
         Set<Long> bookmarkedBoardIds = new HashSet<>();
+        User currentUser = null;
         if (userEmail != null) {
-            Optional<User> userOptional = userRepository.findByEmail(userEmail);
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
-                List<Bookmark> bookmarks = bookmarkRepository.findByUserAndActiveTrue(user);
+            currentUser = userRepository.findByEmail(userEmail).orElse(null);
+            if (currentUser != null) {
+                List<Bookmark> bookmarks = bookmarkRepository.findByUserAndActiveTrue(currentUser);
                 bookmarks.forEach(b -> bookmarkedBoardIds.add(b.getBoard().getId()));
             }
         }
 
+        final User finalCurrentUser = currentUser; // 람다식 내부에서 사용하기 위해 final 변수로 선언
+
+        // 👇 Board 엔티티를 BoardListResponseDto로 변환합니다.
         return boards.map(board -> BoardListResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -108,7 +115,8 @@ public class BoardService {
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .likeCount(likeRepository.countByBoardAndActiveTrue(board))
-                .isBookmarked(bookmarkedBoardIds.contains(board.getId()))
+                .isBookmarked(bookmarkedBoardIds.contains(board.getId())) // 미리 준비한 Set으로 북마크 여부 확인
+                .isLiked(finalCurrentUser != null && likeRepository.existsByUserAndBoardAndActiveTrue(finalCurrentUser, board)) // 로그인한 경우 좋아요 여부 확인
                 .build());
     }
 
