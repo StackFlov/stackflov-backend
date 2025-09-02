@@ -40,7 +40,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/stackflov:latest
 
   deploy-to-ec2:
-    needs: build-and-push-docker-image # build 작업이 성공해야만 실행
+    needs: build-and-push-docker-image
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
@@ -50,8 +50,14 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # 👇 배포 스크립트 실행에 필요한 환경 변수들을 export 합니다.
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} # .env 파일 대신 시크릿 사용
-            cd /home/ubuntu/app # EC2에 생성한 파일들이 있는 경로
+            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            cd /home/ubuntu/app
+            
+            # 👇 docker-compose.yml에 정의된 이미지를 미리 pull 합니다.
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/stackflov:latest
+            docker pull redis:alpine
+            
+            # 👇 배포 스크립트를 실행합니다.
             bash deploy.sh
