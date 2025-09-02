@@ -61,3 +61,25 @@ jobs:
             
             # 👇 배포 스크립트를 실행합니다.
             bash deploy.sh
+
+  stop-containers-on-ec2:
+    runs-on: ubuntu-latest
+    name: Stop EC2 Containers Remotely
+    steps:
+      - name: Connect to EC2 and stop containers
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Attempting to stop Docker containers..."
+            cd /home/ubuntu/app || exit
+            
+            # 실행 중인 blue 프로젝트가 있는지 확인하고 중지
+            docker-compose -p stackflov-blue ps -q && docker-compose -p stackflov-blue down
+            
+            # 실행 중인 green 프로젝트가 있는지 확인하고 중지
+            docker-compose -p stackflov-green ps -q && docker-compose -p stackflov-green down
+
+            echo "All stackflov containers stopped."
