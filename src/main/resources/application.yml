@@ -139,7 +139,7 @@ spring:
       on-profile: prod
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
 app:
   oauth:
     redirect-uri: https://localhost:3000/oauth-redirect
