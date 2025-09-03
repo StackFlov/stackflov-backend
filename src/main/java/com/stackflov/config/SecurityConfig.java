@@ -8,17 +8,18 @@ import com.stackflov.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import java.util.List;
 
@@ -27,86 +28,134 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;  // 빈 주입
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
+    /**
+     * (1) Swagger / Health 전용 완전 공개 체인
+     * 이 체인에선 JwtFilter를 추가하지 않습니다.
+     */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain swaggerAndHealthChain(HttpSecurity http) throws Exception {
+        // CSRF 토큰 핸들러 (스프링 6 기본 설정 충돌 방지용)
         CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
         requestHandler.setCsrfRequestAttributeName(null);
-        return http
-                .cors(cors -> {})
+
+        http
+                .securityMatcher("/swagger-ui/**", "/v3/api-docs/**", "/health")
+                .cors(c -> {}) // CORS 활성화(전역 설정 사용)
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        // 여기엔 JwtFilter 추가 금지!
+        return http.build();
+    }
+
+    /**
+     * (2) 애플리케이션 기본 체인
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain appChain(HttpSecurity http) throws Exception {
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName(null);
+
+        return http
+                .cors(c -> {})
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(requestHandler)
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 공개 엔드포인트 (여기에도 한 번 더 명시해 두면 안전)
                         .requestMatchers(
-                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-ui/**", "/v3/api-docs/**", "/health",
                                 "/auth/login", "/auth/register", "/auth/reissue",
-                                "/auth/email/**", "/ws/**", "/health"
+                                "/auth/email/**", "/ws/**"
                         ).permitAll()
+
+                        // Boards
                         .requestMatchers(HttpMethod.GET, "/boards/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/boards").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/boards/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/boards/**").authenticated()
+
+                        // Users
                         .requestMatchers(HttpMethod.PUT, "/users/password").authenticated()
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/comments").authenticated()  // 댓글 작성은 인증된 회원만
-                        .requestMatchers(HttpMethod.PUT, "/comments/**").authenticated()  // 댓글 수정은 작성자만
-                        .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()  // 댓글 삭제는 작성자만
-                        .requestMatchers(HttpMethod.GET, "/comments/board/**").permitAll()  // 댓글 조회는 비회원도 가능
 
-                        .requestMatchers(HttpMethod.POST, "/follows/follow").authenticated()  // 팔로우 추가
-                        .requestMatchers(HttpMethod.DELETE, "/follows/unfollow").authenticated()  // 팔로우 취소
-                        .requestMatchers(HttpMethod.GET, "/follows/followers/**").permitAll()  // 팔로워 조회 (비회원 가능)
-                        .requestMatchers(HttpMethod.GET, "/follows/following/**").permitAll()  // 팔로잉 조회 (비회원 가능)
+                        // Comments
+                        .requestMatchers(HttpMethod.POST, "/comments").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/comments/board/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/bookmarks").authenticated() // 북마크 추가 (인증된 회원만)
-                        .requestMatchers(HttpMethod.DELETE, "/bookmarks").authenticated() // 북마크 삭제 (인증된 회원만)
-                        .requestMatchers(HttpMethod.GET, "/bookmarks/my").authenticated() // 내 북마크 조회 (인증된 회원만)
-                        .requestMatchers(HttpMethod.GET, "/bookmarks/board/**").permitAll() // 특정 게시글 북마크 여부 확인 (비회원도 가능)
+                        // Follows
+                        .requestMatchers(HttpMethod.POST, "/follows/follow").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/follows/unfollow").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/follows/followers/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/follows/following/**").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/profiles/**").authenticated() // 프로필 페이지
+                        // Bookmarks
+                        .requestMatchers(HttpMethod.POST, "/bookmarks").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/bookmarks").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/bookmarks/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/bookmarks/board/**").permitAll()
 
+                        // Profiles
+                        .requestMatchers(HttpMethod.GET, "/profiles/**").authenticated()
+
+                        // Reports
                         .requestMatchers(HttpMethod.POST, "/reports").authenticated()
 
+                        // Admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                        // Feed
                         .requestMatchers("/feed").authenticated()
 
+                        // 나머지
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // 사용자 정보 처리 서비스
-                        )
-                        .successHandler(oAuth2AuthenticationSuccessHandler) // 인증 성공 핸들러
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
                 .build();
     }
+
+    /**
+     * CORS 전역 설정
+     * - 필요 시 프런트/도메인 추가
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+
+        // 프런트/도메인들 추가
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://stackflov.duckdns.org"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.addExposedHeader("Authorization");
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }
-
-
