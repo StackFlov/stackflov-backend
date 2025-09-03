@@ -114,6 +114,8 @@ logging:
     com.stackflov: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
 
 ncloud:
   sms:
