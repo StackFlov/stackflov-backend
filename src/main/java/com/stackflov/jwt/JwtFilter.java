@@ -25,6 +25,14 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // 🔑 Swagger, API Docs, Health 는 필터 무시
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.equals("/health")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         if (token != null && jwtProvider.validateToken(token)) {
