@@ -43,6 +43,7 @@ public class Board {
     @Builder.Default
     // 게시판 이미지 연관관계 (1:N)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
     private List<BoardImage> images = new ArrayList<>();
 
     @CreationTimestamp

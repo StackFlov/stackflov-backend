@@ -2,7 +2,7 @@ package com.stackflov.service;
 
 import com.stackflov.domain.Follow;
 import com.stackflov.domain.User;
-import com.stackflov.dto.UserResponseDto; // UserResponseDto 임포트 추가
+import com.stackflov.dto.UserResponseDto;
 import com.stackflov.repository.FollowRepository;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -20,69 +20,53 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
-    // 팔로우 추가
     @Transactional
     public void follow(Long followerId, Long followedId) {
-        // 팔로우하려는 유저와 팔로우 당하는 유저 조회
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new IllegalArgumentException("팔로우하는 사용자가 존재하지 않습니다."));
         User followed = userRepository.findById(followedId)
                 .orElseThrow(() -> new IllegalArgumentException("팔로우 당하는 사용자가 존재하지 않습니다."));
 
-        // 중복 팔로우 방지
-        if (followRepository.findByFollowerIdAndFollowedId(followerId, followedId).isPresent()) {
-            throw new IllegalArgumentException("이미 팔로우한 사용자입니다.");
+        Optional<Follow> existing = followRepository.findByFollowerIdAndFollowedId(followerId, followedId);
+        if (existing.isPresent()) {
+            Follow follow = existing.get();
+            if (follow.isActive()) {
+                throw new IllegalArgumentException("이미 팔로우한 사용자입니다.");
+            }
+            follow.activate();               // 👈 리액티베이션
+            followRepository.save(follow);
+            return;
         }
 
-        // 팔로우 관계 저장
-        Follow follow = Follow.builder()
-                .follower(follower)
-                .followed(followed)
-                .build();
-
-        followRepository.save(follow);
+        followRepository.save(Follow.builder().follower(follower).followed(followed).build());
     }
 
-    // 팔로우 취소
     @Transactional
     public void unfollow(Long followerId, Long followedId) {
-        Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
+        Follow follow = followRepository.findByFollowerIdAndFollowedIdAndActiveTrue(followerId, followedId)
                 .orElseThrow(() -> new IllegalArgumentException("팔로우 관계가 존재하지 않습니다."));
-
-        followRepository.delete(follow);
+        follow.deactivate();
     }
 
-    // 팔로우 상태 확인
     public boolean isFollowing(Long followerId, Long followedId) {
-        return followRepository.findByFollowerIdAndFollowedId(followerId, followedId).isPresent();
+        return followRepository.findByFollowerIdAndFollowedIdAndActiveTrue(followerId, followedId).isPresent();
     }
 
-    // 팔로워 목록 조회 - 반환 타입을 List<UserResponseDto>로 변경
     public List<UserResponseDto> getFollowers(Long followedId) {
-        List<Follow> follows = followRepository.findByFollowedId(followedId);
-        // User 엔티티를 UserResponseDto로 변환하여 반환
-        return follows.stream()
-                .map(follow -> new UserResponseDto(follow.getFollower()))
+        return followRepository.findByFollowedIdAndActiveTrue(followedId).stream()
+                .map(f -> new UserResponseDto(f.getFollower()))
                 .collect(Collectors.toList());
     }
 
-    // 팔로우 목록 조회 - 반환 타입을 List<UserResponseDto>로 변경
     public List<UserResponseDto> getFollowing(Long followerId) {
-        List<Follow> follows = followRepository.findByFollowerId(followerId);
-        // User 엔티티를 UserResponseDto로 변환하여 반환
-        return follows.stream()
-                .map(follow -> new UserResponseDto(follow.getFollowed()))
+        return followRepository.findByFollowerIdAndActiveTrue(followerId).stream()
+                .map(f -> new UserResponseDto(f.getFollowed()))
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public void deactivateAllFollowsByUser(User user) {
-        // 내가 다른 사람을 팔로우한 기록 비활성화
-        List<Follow> followingList = followRepository.findByFollower(user);
-        followingList.forEach(Follow::deactivate);
-
-        // 다른 사람이 나를 팔로우한 기록 비활성화
-        List<Follow> followerList = followRepository.findByFollowed(user);
-        followerList.forEach(Follow::deactivate);
+        followRepository.findByFollower(user).forEach(Follow::deactivate);
+        followRepository.findByFollowed(user).forEach(Follow::deactivate);
     }
 }

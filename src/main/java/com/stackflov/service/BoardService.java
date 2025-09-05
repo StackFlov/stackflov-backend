@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,18 +39,24 @@ public class BoardService {
                 .category(dto.getCategory())
                 .build();
 
-        // 이미지 처리
+        // 이미지 처리 (모두 활성으로 추가)
         if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
+            AtomicInteger order = new AtomicInteger(0);
+
             List<BoardImage> images = dto.getImageUrls().stream()
-                    .map(url -> BoardImage.builder().board(board).imageUrl(url).build())
+                    .map(url -> BoardImage.builder()
+                            .board(board)
+                            .imageUrl(url)
+                            .sortOrder(order.getAndIncrement())
+                            .build())
                     .collect(Collectors.toList());
+
             board.getImages().addAll(images);
         }
 
         Board savedBoard = boardRepository.save(board);
         return savedBoard.getId();
     }
-
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -62,11 +69,13 @@ public class BoardService {
                 .map(user -> likeRepository.existsByUserAndBoardAndActiveTrue(user, board))
                 .orElse(false);
 
+        // 활성 이미지만, sortOrder 기준
         List<String> imageUrls = board.getImages().stream()
+                .filter(BoardImage::isActive)
+                .sorted(Comparator.comparing(i -> i.getSortOrder() == null ? Integer.MAX_VALUE : i.getSortOrder()))
                 .map(BoardImage::getImageUrl)
                 .collect(Collectors.toList());
 
-        // 👇 Board 엔티티를 BoardResponseDto로 변환합니다.
         return BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -89,7 +98,6 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Board> boards = boardRepository.findAllByActiveTrue(pageable);
 
-        // 사용자가 로그인한 경우, 북마크한 게시글 ID 목록을 미리 준비합니다.
         Set<Long> bookmarkedBoardIds = new HashSet<>();
         User currentUser = null;
         if (userEmail != null) {
@@ -100,9 +108,8 @@ public class BoardService {
             }
         }
 
-        final User finalCurrentUser = currentUser; // 람다식 내부에서 사용하기 위해 final 변수로 선언
+        final User finalCurrentUser = currentUser;
 
-        // 👇 Board 엔티티를 BoardListResponseDto로 변환합니다.
         return boards.map(board -> BoardListResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -110,13 +117,17 @@ public class BoardService {
                 .authorNickname(board.getAuthor().getNickname())
                 .authorId(board.getAuthor().getId())
                 .category(board.getCategory())
-                .thumbnailUrl(board.getImages().isEmpty() ? null : board.getImages().get(0).getImageUrl())
+                .thumbnailUrl(board.getImages().stream()
+                        .filter(BoardImage::isActive)
+                        .sorted(Comparator.comparing(i -> i.getSortOrder() == null ? Integer.MAX_VALUE : i.getSortOrder()))
+                        .map(BoardImage::getImageUrl)
+                        .findFirst().orElse(null))
                 .viewCount(board.getViewCount())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .likeCount(likeRepository.countByBoardAndActiveTrue(board))
-                .isBookmarked(bookmarkedBoardIds.contains(board.getId())) // 미리 준비한 Set으로 북마크 여부 확인
-                .isLiked(finalCurrentUser != null && likeRepository.existsByUserAndBoardAndActiveTrue(finalCurrentUser, board)) // 로그인한 경우 좋아요 여부 확인
+                .isBookmarked(bookmarkedBoardIds.contains(board.getId()))
+                .isLiked(finalCurrentUser != null && likeRepository.existsByUserAndBoardAndActiveTrue(finalCurrentUser, board))
                 .build());
     }
 
@@ -131,16 +142,31 @@ public class BoardService {
 
         board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
 
-        // 이미지 업데이트 로직 (기존 이미지 모두 삭제 후 새로 추가)
-        board.getImages().clear();
-        if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-            List<BoardImage> newImages = dto.getImageUrls().stream()
-                    .map(url -> BoardImage.builder().board(board).imageUrl(url).build())
-                    .collect(Collectors.toList());
-            board.getImages().addAll(newImages);
+        // === 이미지 소프트 삭제/재정렬 ===
+        // 현재 활성 이미지 Map (url -> entity)
+        Map<String, BoardImage> activeMap = board.getImages().stream()
+                .filter(BoardImage::isActive)
+                .collect(Collectors.toMap(BoardImage::getImageUrl, img -> img, (a, b) -> a));
+
+        List<String> newUrls = dto.getImageUrls() == null ? List.of() : dto.getImageUrls();
+
+        int order = 0;
+        for (String url : newUrls) {
+            BoardImage exist = activeMap.remove(url);
+            if (exist != null) {
+                exist.setSortOrder(order++);
+                exist.activate(); // 혹시 비활성 상태였다면 활성화
+            } else {
+                board.getImages().add(BoardImage.builder()
+                        .board(board).imageUrl(url).sortOrder(order++).build());
+            }
+        }
+        // activeMap에 남은 것들은 제거된 이미지 → 비활성화
+        for (BoardImage removed : activeMap.values()) {
+            removed.deactivate();
+            removed.setSortOrder(null);
         }
     }
-
 
     @Transactional
     public void deleteBoard(String email, Long boardId) {
@@ -151,7 +177,8 @@ public class BoardService {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
-        boardRepository.delete(board);
+        // 실제 삭제 대신 비활성화를 권장하려면 아래 메서드 사용
+        deactivateOwnBoard(email, boardId);
     }
 
     @Transactional
@@ -162,51 +189,47 @@ public class BoardService {
         if (!board.getAuthor().getEmail().equals(email)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
-        board.deactivate(); // active를 false로 변경
+        board.deactivate();
 
+        // 댓글/북마크/좋아요 연쇄 비활성화
         List<Comment> comments = commentRepository.findByBoardId(boardId);
-        for (Comment comment : comments) {
-            comment.deactivate();
-        }
+        for (Comment comment : comments) comment.deactivate();
+
         List<Bookmark> bookmarks = bookmarkRepository.findByBoard(board);
-        for (Bookmark bookmark : bookmarks) {
-            bookmark.deactivate();
-        }
+        for (Bookmark bookmark : bookmarks) bookmark.deactivate();
 
         List<Like> likes = likeRepository.findByBoard(board);
-        for (Like like : likes) {
-            like.deactivate();
+        for (Like like : likes) like.deactivate();
+
+        // 이미지도 비활성화
+        for (BoardImage img : board.getImages()) {
+            if (img.isActive()) img.deactivate();
         }
     }
 
     @Transactional
     public void deactivateBoardByAdmin(Long boardId) {
-        Board board = boardRepository.findById(boardId) // 관리자는 비활성화된 글도 찾을 수 있어야 하므로 findById 사용
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        board.deactivate(); // active를 false로 변경
+        board.deactivate();
     }
 
     private void deactivateBoardAndAssociations(Board board) {
-        // 1. 게시글 비활성화
         board.deactivate();
-
-        // 2. 연관된 북마크들 비활성화
-        List<Bookmark> bookmarks = bookmarkRepository.findByBoard(board);
-        bookmarks.forEach(Bookmark::deactivate);
-
-        // 3. 연관된 좋아요들 비활성화
-        List<Like> likes = likeRepository.findByBoard(board);
-        likes.forEach(Like::deactivate);
+        bookmarkRepository.findByBoard(board).forEach(Bookmark::deactivate);
+        likeRepository.findByBoard(board).forEach(Like::deactivate);
+        // 이미지도 함께 비활성화
+        board.getImages().forEach(img -> { if (img.isActive()) img.deactivate(); });
     }
-    // [추가] 특정 사용자의 모든 게시글을 비활성화
+
     @Transactional
     public void deactivateAllBoardsByUser(User user) {
         List<Board> boards = boardRepository.findByAuthor(user);
         for (Board board : boards) {
-            // 이전에 만든, 연관 데이터까지 함께 비활성화하는 메서드를 재사용
             deactivateBoardAndAssociations(board);
         }
     }
+
     @Transactional(readOnly = true)
     public Page<BoardResponseDto> searchBoards(BoardSearchConditionDto condition, Pageable pageable) {
         Specification<Board> spec = BoardSpecification.search(condition);
@@ -223,9 +246,10 @@ public class BoardService {
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .imageUrls(board.getImages().stream()
+                        .filter(BoardImage::isActive)
+                        .sorted(Comparator.comparing(i -> i.getSortOrder() == null ? Integer.MAX_VALUE : i.getSortOrder()))
                         .map(BoardImage::getImageUrl)
                         .collect(Collectors.toList()))
-                // 검색 결과에서는 좋아요 수나 여부를 보여주지 않을 경우 0, false로 처리
                 .likeCount(0)
                 .isLiked(false)
                 .build());

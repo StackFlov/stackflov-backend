@@ -3,13 +3,14 @@ package com.stackflov.controller;
 import com.stackflov.dto.*;
 import com.stackflov.service.AuthService;
 import com.stackflov.service.EmailService;
+import com.stackflov.service.SmsService;
 import com.stackflov.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.stackflov.service.SmsService;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,16 +24,13 @@ public class AuthController {
 
     @PostMapping("/reissue")
     public ResponseEntity<TokenResponseDto> reissue(@RequestBody ReissueRequest request) {
-        System.out.println("[DEBUG] /auth/reissue 요청 들어옴, refreshToken: " + request.getRefreshToken());
         try {
             TokenResponseDto tokenResponse = authService.reissueToken(request.getRefreshToken());
             return ResponseEntity.ok(tokenResponse);
         } catch (IllegalArgumentException e) {
-            System.out.println("[ERROR] 토큰 재발급 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
-
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody SignupRequestDto signupRequestDto) {
@@ -49,12 +47,13 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
+
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken) {
-        String token = accessToken.replace("Bearer ", "");
-        authService.logout(token);
+    public ResponseEntity<String> logout(@AuthenticationPrincipal String email) {
+        authService.logout(email);
         return ResponseEntity.ok("로그아웃 완료");
     }
+
     @PostMapping("/email/send")
     public ResponseEntity<String> sendCode(@RequestBody EmailRequestDto requestDto) {
         emailService.sendVerificationCode(requestDto.getEmail());
@@ -86,7 +85,6 @@ public class AuthController {
     }
 }
 
-// DTO for refresh token request
 @Getter
 class ReissueRequest {
     private String refreshToken;

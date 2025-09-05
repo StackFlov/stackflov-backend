@@ -5,6 +5,7 @@ import com.stackflov.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,7 +17,7 @@ public class ReportController {
 
     @PostMapping
     public ResponseEntity<String> createReport(
-            @RequestAttribute("email") String email, // JwtFilter에서 설정한 email 사용
+            @AuthenticationPrincipal String email,
             @RequestBody ReportRequestDto dto) {
 
         reportService.createReport(email, dto);

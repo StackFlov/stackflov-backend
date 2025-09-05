@@ -37,8 +37,10 @@ public class AuthService {
 
         return new TokenResponseDto(newAccessToken, newRefreshToken);
     }
-    public void logout(String token) {
-        String email = jwtProvider.getEmail(token);
+
+    // 변경: 토큰이 아니라 email을 받아서 로그아웃
+    public void logout(String email) {
+        if (email == null || email.isBlank()) return;
         redisService.delete("RT:" + email);
     }
 }

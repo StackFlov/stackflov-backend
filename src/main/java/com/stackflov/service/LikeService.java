@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class LikeService {
@@ -25,17 +27,19 @@ public class LikeService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // 이미 좋아요를 눌렀는지 확인
-        if (likeRepository.findByUserAndBoard(user, board).isPresent()) {
-            throw new IllegalArgumentException("이미 좋아요를 누른 게시글입니다.");
+        Optional<Like> existing = likeRepository.findByUserAndBoard(user, board);
+
+        if (existing.isPresent()) {
+            Like like = existing.get();
+            if (like.isActive()) {
+                throw new IllegalArgumentException("이미 좋아요를 누른 게시글입니다.");
+            }
+            like.activate();                 // 👈 리액티베이션
+            likeRepository.save(like);
+            return;
         }
 
-        Like like = Like.builder()
-                .user(user)
-                .board(board)
-                .build();
-
-        likeRepository.save(like);
+        likeRepository.save(Like.builder().user(user).board(board).build());
     }
 
     @Transactional
@@ -45,10 +49,8 @@ public class LikeService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        Like like = likeRepository.findByUserAndBoard(user, board)
-                .orElseThrow(() -> new IllegalArgumentException("좋아요 기록을 찾을 수 없습니다."));
-
-        likeRepository.delete(like);
+        Like like = likeRepository.findByUserAndBoardAndActiveTrue(user, board)
+                .orElseThrow(() -> new IllegalArgumentException("좋아요 기록이 없습니다."));
+        like.deactivate(); // 소프트 삭제
     }
 }
-

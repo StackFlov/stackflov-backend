@@ -39,4 +39,7 @@ public class Like {
     public void deactivate() {
         this.active = false;
     }
+    public void activate() { this.active = true; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 }

@@ -36,8 +36,12 @@ public class Follow {
     @Column(nullable = false)
     private boolean active = true;
 
+    public void setActive(boolean active) { this.active = active; }
+
     // === 비활성화를 위한 비즈니스 메서드 추가 ===
     public void deactivate() {
         this.active = false;
     }
+    public void activate() { this.active = true; }
+    public boolean isActive() { return active; }
 }

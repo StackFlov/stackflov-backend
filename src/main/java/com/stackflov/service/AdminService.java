@@ -49,9 +49,7 @@ public class AdminService {
             throw new IllegalStateException("마지막 남은 관리자의 역할은 변경할 수 없습니다.");
         }
 
-        // User 엔티티에 역할 변경 메서드가 없으므로, 빌더를 사용해 객체를 재생성하고 저장
-        User updatedUser = buildUserWithNewRole(targetUser, dto.getRole());
-        userRepository.save(updatedUser);
+        targetUser.updateRole(dto.getRole());
     }
 
     // 사용자 계정 상태 변경 (활성/비활성)
@@ -68,12 +66,8 @@ public class AdminService {
             throw new IllegalStateException("마지막 남은 관리자는 비활성화할 수 없습니다.");
         }
 
-        // --- 이 부분이 핵심 로직입니다 ---
-        // 1. 계정 상태 변경
-        User updatedUser = buildUserWithNewStatus(targetUser, dto.isActive());
-        userRepository.save(updatedUser);
+        targetUser.updateStatus(dto.isActive());
 
-        // 2. 만약 '비활성화' 하는 경우라면, 모든 연관 데이터를 함께 처리
         if (!dto.isActive()) {
             commentService.deactivateAllCommentsByUser(targetUser);
             boardService.deactivateAllBoardsByUser(targetUser);

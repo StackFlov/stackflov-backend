@@ -93,4 +93,10 @@ public class JwtProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public String getRole(String token) {
+        Object role = parseClaims(token).get("role");
+        return role != null ? role.toString() : null;
+    }
+
 }

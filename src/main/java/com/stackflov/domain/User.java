@@ -71,4 +71,12 @@ public class User {
     public void setPassword(String password) {
         this.password = password;  // 암호화된 비밀번호를 저장
     }
+
+    public void updateRole(Role newRole) {
+        this.role = newRole;
+    }
+
+    public void updateStatus(boolean active) {
+        this.active = active;
+    }
 }
