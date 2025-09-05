@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.lang.Nullable;
@@ -66,6 +67,8 @@ public class BoardController {
         Page<BoardResponseDto> results = boardService.searchBoards(condition, pageable);
         return ResponseEntity.ok(results);
     }
+
+    @PreAuthorize("hasRole('USER')")
     @PostMapping(value = "/multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBoardWithFiles(
             @AuthenticationPrincipal CustomUserPrincipal principal,

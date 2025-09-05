@@ -3,6 +3,7 @@ package com.stackflov.controller;
 import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.*;
 import com.stackflov.service.AdminService;
+import com.stackflov.service.BoardService;
 import com.stackflov.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final DashboardService dashboardService;
+    private final BoardService boardService;
 
     @GetMapping("/users")
     public ResponseEntity<Page<AdminUserDto>> getUsers(
@@ -109,5 +112,11 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<AdminCommentDto> comments = adminService.getCommentsByUser(userId, pageable);
         return ResponseEntity.ok(comments);
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> deleteBoardByAdmin(@PathVariable Long boardId) {
+        boardService.deactivateBoardByAdmin(boardId);
+        return ResponseEntity.ok("삭제 완료");
     }
 }
