@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,37 +27,7 @@ public class BoardService {
     private final BookmarkRepository bookmarkRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
-
-    @Transactional
-    public Long createBoard(String email, BoardRequestDto dto) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Board board = Board.builder()
-                .author(user)
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .category(dto.getCategory())
-                .build();
-
-        // 이미지 처리 (모두 활성으로 추가)
-        if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-            AtomicInteger order = new AtomicInteger(0);
-
-            List<BoardImage> images = dto.getImageUrls().stream()
-                    .map(url -> BoardImage.builder()
-                            .board(board)
-                            .imageUrl(url)
-                            .sortOrder(order.getAndIncrement())
-                            .build())
-                    .collect(Collectors.toList());
-
-            board.getImages().addAll(images);
-        }
-
-        Board savedBoard = boardRepository.save(board);
-        return savedBoard.getId();
-    }
+    private final S3Service s3Service;
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -253,5 +224,38 @@ public class BoardService {
                 .likeCount(0)
                 .isLiked(false)
                 .build());
+    }
+    @Transactional
+    public Long createBoardWithFiles(String email, BoardCreateRequestDto data, List<MultipartFile> images) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 1) 게시글 생성
+        Board board = Board.builder()
+                .author(user)
+                .title(data.getTitle())
+                .content(data.getContent())
+                .category(data.getCategory())
+                .build();
+
+        // 2) 파일이 있으면 업로드 후 BoardImage 저장
+        if (images != null && !images.isEmpty()) {
+            AtomicInteger order = new AtomicInteger(0);
+            List<BoardImage> boardImages = images.stream()
+                    .filter(f -> f != null && !f.isEmpty())
+                    .map(file -> {
+                        String url = s3Service.upload(file, "images");
+                        return BoardImage.builder()
+                                .board(board)
+                                .imageUrl(url)
+                                .sortOrder(order.getAndIncrement())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+            board.getImages().addAll(boardImages);
+        }
+
+        Board savedBoard = boardRepository.save(board);
+        return savedBoard.getId();
     }
 }

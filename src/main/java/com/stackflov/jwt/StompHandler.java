@@ -1,5 +1,8 @@
 package com.stackflov.jwt;
 
+import com.stackflov.config.CustomUserPrincipal;
+import com.stackflov.domain.User;
+import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -17,6 +20,7 @@ import java.util.Collections;
 public class StompHandler implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -31,10 +35,13 @@ public class StompHandler implements ChannelInterceptor {
             if (jwtToken != null && jwtToken.startsWith("Bearer ") && jwtProvider.validateToken(jwtToken.substring(7))) {
                 String token = jwtToken.substring(7);
                 String email = jwtProvider.getEmail(token);
+                User user = userRepository.findByEmailAndActiveTrue(email)
+                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                CustomUserPrincipal principal = CustomUserPrincipal.from(user);
 
-                // Spring Security 인증 객체를 생성합니다.
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(
+                                principal,null,principal.getAuthorities());
 
                 // SecurityContext에 인증 정보를 저장합니다.
                 SecurityContextHolder.getContext().setAuthentication(authentication);

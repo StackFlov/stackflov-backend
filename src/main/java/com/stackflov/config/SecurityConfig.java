@@ -71,7 +71,7 @@ public class SecurityConfig {
 
                         // Boards
                         .requestMatchers(HttpMethod.GET, "/boards/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/boards").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/boards/multipart").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/boards/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/boards/**").authenticated()
 

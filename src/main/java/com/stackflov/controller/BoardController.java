@@ -1,13 +1,20 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.*;
 import com.stackflov.service.BoardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.Nullable;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/boards")
@@ -16,18 +23,11 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    @PostMapping
-    public ResponseEntity<?> createBoard(@RequestBody BoardRequestDto dto,
-                                         @AuthenticationPrincipal String email) {
-        Long boardId = boardService.createBoard(email, dto);
-        return ResponseEntity.ok(boardId);
-    }
-
     @GetMapping("/{boardId}")
     public ResponseEntity<BoardResponseDto> getBoard(
             @PathVariable Long boardId,
-            @AuthenticationPrincipal String email // 비로그인 허용: null 가능
-    ) {
+            @AuthenticationPrincipal @Nullable CustomUserPrincipal principal) {
+        String email = (principal != null) ? principal.getEmail() : null;
         BoardResponseDto response = boardService.getBoard(boardId, email);
         return ResponseEntity.ok(response);
     }
@@ -36,8 +36,9 @@ public class BoardController {
     public ResponseEntity<Page<BoardListResponseDto>> getBoards(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal String email
+            @AuthenticationPrincipal @Nullable CustomUserPrincipal principal
     ) {
+        String email = (principal != null) ? principal.getEmail() : null;
         Page<BoardListResponseDto> boards = boardService.getBoards(page, size, email);
         return ResponseEntity.ok(boards);
     }
@@ -45,15 +46,15 @@ public class BoardController {
     @PutMapping("/{boardId}")
     public ResponseEntity<?> updateBoard(@PathVariable Long boardId,
                                          @RequestBody BoardUpdateRequestDto dto,
-                                         @AuthenticationPrincipal String email) {
-        boardService.updateBoard(email, boardId, dto);
+                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
+        boardService.updateBoard(principal.getEmail(), boardId, dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{boardId}")
     public ResponseEntity<?> deleteBoard(@PathVariable Long boardId,
-                                         @AuthenticationPrincipal String email) {
-        boardService.deactivateOwnBoard(email, boardId);
+                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
+        boardService.deactivateOwnBoard(principal.getEmail(), boardId);
         return ResponseEntity.noContent().build();
     }
 
@@ -65,4 +66,15 @@ public class BoardController {
         Page<BoardResponseDto> results = boardService.searchBoards(condition, pageable);
         return ResponseEntity.ok(results);
     }
+    @PostMapping(value = "/multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createBoardWithFiles(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @Valid @RequestPart("data") BoardCreateRequestDto data,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        String email = principal.getEmail();
+        Long boardId = boardService.createBoardWithFiles(email, data, images);
+        return ResponseEntity.ok(boardId);
+    }
+
 }

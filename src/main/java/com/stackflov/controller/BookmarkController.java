@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.BookmarkRequestDto;
 import com.stackflov.dto.BookmarkResponseDto;
 import com.stackflov.service.BookmarkService;
@@ -20,10 +21,10 @@ public class BookmarkController {
 
     @PostMapping
     public ResponseEntity<BookmarkResponseDto> addBookmark(
-            @AuthenticationPrincipal String userEmail,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody BookmarkRequestDto requestDto) {
         try {
-            BookmarkResponseDto response = bookmarkService.addBookmark(userEmail, requestDto);
+            BookmarkResponseDto response = bookmarkService.addBookmark(principal.getEmail(), requestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -32,10 +33,10 @@ public class BookmarkController {
 
     @DeleteMapping
     public ResponseEntity<Void> removeBookmark(
-            @AuthenticationPrincipal String userEmail,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody BookmarkRequestDto requestDto) {
         try {
-            bookmarkService.removeBookmark(userEmail, requestDto);
+            bookmarkService.removeBookmark(principal.getEmail(), requestDto);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -44,15 +45,16 @@ public class BookmarkController {
 
     @GetMapping("/my")
     public ResponseEntity<List<BookmarkResponseDto>> getUserBookmarks(
-            @AuthenticationPrincipal String userEmail) {
-        List<BookmarkResponseDto> bookmarks = bookmarkService.getUserBookmarks(userEmail);
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        List<BookmarkResponseDto> bookmarks = bookmarkService.getUserBookmarks(principal.getEmail());
         return ResponseEntity.ok(bookmarks);
     }
 
     @GetMapping("/board/{boardId}/check")
     public ResponseEntity<Boolean> isBookmarked(
-            @AuthenticationPrincipal String email,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long boardId) {
+        String email = (principal == null) ? null : principal.getEmail();
         boolean bookmarked = bookmarkService.isBookmarked(email, boardId); // email == null → 게스트 처리
         return ResponseEntity.ok(bookmarked);
     }

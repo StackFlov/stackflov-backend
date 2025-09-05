@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.BoardListResponseDto;
 import com.stackflov.service.FeedService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,9 @@ public class FeedController {
 
     @GetMapping("/feed")
     public ResponseEntity<Page<BoardListResponseDto>> getFeed(
-            @AuthenticationPrincipal String userEmail,
-            Pageable pageable
-    ) {
-        Page<BoardListResponseDto> feed = feedService.getFeed(userEmail, pageable);
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            Pageable pageable) {
+        Page<BoardListResponseDto> feed = feedService.getFeed(principal.getEmail(), pageable);
         return ResponseEntity.ok(feed);
     }
 }

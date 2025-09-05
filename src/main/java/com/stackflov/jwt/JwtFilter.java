@@ -1,8 +1,6 @@
 package com.stackflov.jwt;
 
-import com.stackflov.domain.User;
 import com.stackflov.repository.UserRepository;
-import com.stackflov.config.CustomUserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.stackflov.repository.UserRepository;
+import com.stackflov.config.CustomUserPrincipal;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final UserRepository userRepository; // ⬅ 추가
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -40,11 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token != null && jwtProvider.validateToken(token)) {
             String email = jwtProvider.getEmail(token);
-
-            // 컨트롤러의 @RequestAttribute("email") 사용 중인 코드 호환
+            // 컨트롤러의 @RequestAttribute("email") 호환 유지
             request.setAttribute("email", email);
-
-            // DB에서 사용자 조회 → 권한 포함 Principal 생성
             userRepository.findByEmailAndActiveTrue(email).ifPresent(user -> {
                 CustomUserPrincipal principal = CustomUserPrincipal.from(user);
                 UsernamePasswordAuthenticationToken authentication =

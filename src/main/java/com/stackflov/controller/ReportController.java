@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.ReportRequestDto;
 import com.stackflov.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,10 @@ public class ReportController {
 
     @PostMapping
     public ResponseEntity<String> createReport(
-            @AuthenticationPrincipal String email,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody ReportRequestDto dto) {
 
-        reportService.createReport(email, dto);
+        reportService.createReport(principal.getEmail(), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body("신고가 정상적으로 접수되었습니다.");
     }
 }

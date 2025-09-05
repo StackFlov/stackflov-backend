@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.*;
 import com.stackflov.service.AdminService;
 import com.stackflov.service.DashboardService;
@@ -32,8 +33,8 @@ public class AdminController {
     public ResponseEntity<String> updateUserRole(
             @PathVariable Long userId,
             @RequestBody RoleUpdateRequestDto dto,
-            @AuthenticationPrincipal String adminEmail) {
-        adminService.updateUserRole(userId, dto, adminEmail);
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        adminService.updateUserRole(userId, dto, principal.getEmail());
         return ResponseEntity.ok("사용자 역할이 성공적으로 변경되었습니다.");
     }
 
@@ -41,8 +42,8 @@ public class AdminController {
     public ResponseEntity<String> updateUserStatus(
             @PathVariable Long userId,
             @RequestBody UserStatUpdateRequestDto dto,
-            @AuthenticationPrincipal String adminEmail) {
-        adminService.updateUserStatus(userId, dto, adminEmail);
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        adminService.updateUserStatus(userId, dto, principal.getEmail());
         return ResponseEntity.ok("사용자 계정 상태가 성공적으로 변경되었습니다.");
     }
 

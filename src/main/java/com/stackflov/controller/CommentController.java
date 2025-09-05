@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.CommentRequestDto;
 import com.stackflov.dto.CommentResponseDto;
 import com.stackflov.service.CommentService;
@@ -19,23 +20,23 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<Long> createComment(@RequestBody CommentRequestDto commentRequestDto,
-                                              @AuthenticationPrincipal String email) {
-        Long commentId = commentService.createComment(commentRequestDto, email);
+                                              @AuthenticationPrincipal CustomUserPrincipal principal) {
+        Long commentId = commentService.createComment(commentRequestDto, principal.getEmail());
         return ResponseEntity.ok(commentId);
     }
 
     @PutMapping("/{commentId}")
     public ResponseEntity<Void> updateComment(@PathVariable Long commentId,
                                               @RequestBody CommentRequestDto commentRequestDto,
-                                              @AuthenticationPrincipal String email) {
-        commentService.updateComment(commentId, commentRequestDto.getContent(), email);
+                                              @AuthenticationPrincipal CustomUserPrincipal principal) {
+        commentService.updateComment(commentId, commentRequestDto.getContent(), principal.getEmail());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId,
-                                              @AuthenticationPrincipal String email) {
-        commentService.deleteComment(commentId, email);
+                                              @AuthenticationPrincipal CustomUserPrincipal principal) {
+        commentService.deleteComment(commentId, principal.getEmail());
         return ResponseEntity.noContent().build();
     }
 

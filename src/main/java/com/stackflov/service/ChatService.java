@@ -57,8 +57,11 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
     @Transactional
-    public void saveMessage(ChatMessageDto messageDto) {
-        User sender = userRepository.findByEmail(messageDto.getSender()) // sender를 email로 가정
+    public void saveMessage(ChatMessageDto messageDto, String senderEmail) {
+        if (senderEmail == null) {
+               throw new IllegalArgumentException("인증되지 않은 사용자입니다.");
+        }
+        User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         ChatRoom chatRoom = chatRoomRepository.findById(messageDto.getRoomId())

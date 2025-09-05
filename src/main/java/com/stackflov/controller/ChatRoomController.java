@@ -1,5 +1,6 @@
 package com.stackflov.controller;
 
+import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.ChatMessageResponseDto;
 import com.stackflov.dto.ChatRoomRequestDto;
 import com.stackflov.service.ChatService;
@@ -18,9 +19,9 @@ public class ChatRoomController {
     private final ChatService chatService;
 
     @PostMapping("/rooms")
-    public ResponseEntity<Long> createRoom(@AuthenticationPrincipal String userEmail,
+    public ResponseEntity<Long> createRoom(@AuthenticationPrincipal CustomUserPrincipal principal,
                                            @RequestBody ChatRoomRequestDto requestDto) {
-        Long roomId = chatService.createChatRoom(userEmail, requestDto);
+        Long roomId = chatService.createChatRoom(principal.getEmail(), requestDto);
         return ResponseEntity.ok(roomId);
     }
 
