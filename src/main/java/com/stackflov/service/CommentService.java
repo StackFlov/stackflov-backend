@@ -2,6 +2,7 @@ package com.stackflov.service;
 
 import com.stackflov.domain.Board;
 import com.stackflov.domain.Comment;
+import com.stackflov.domain.NotificationType;
 import com.stackflov.domain.User;
 import com.stackflov.dto.CommentRequestDto;
 import com.stackflov.dto.CommentResponseDto;
@@ -22,6 +23,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Long createComment(CommentRequestDto commentRequestDto, String userEmail) {
@@ -35,6 +37,15 @@ public class CommentService {
                 .user(user)
                 .content(commentRequestDto.getContent())
                 .build();
+
+        if (!board.getAuthor().getId().equals(user.getId())) {
+            notificationService.notify(
+                    board.getAuthor(),
+                    NotificationType.COMMENT,
+                    user.getNickname() + "님이 \"" + board.getTitle() + "\"에 댓글을 남겼습니다.",
+                    "/boards/" + board.getId()
+            );
+        }
 
         commentRepository.save(comment);
         return comment.getId();

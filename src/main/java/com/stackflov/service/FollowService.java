@@ -1,6 +1,7 @@
 package com.stackflov.service;
 
 import com.stackflov.domain.Follow;
+import com.stackflov.domain.NotificationType;
 import com.stackflov.domain.User;
 import com.stackflov.dto.UserResponseDto;
 import com.stackflov.repository.FollowRepository;
@@ -19,6 +20,7 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void follow(Long followerId, Long followedId) {
@@ -39,6 +41,15 @@ public class FollowService {
         }
 
         followRepository.save(Follow.builder().follower(follower).followed(followed).build());
+
+        if (!follower.getId().equals(followed.getId())) {
+            notificationService.notify(
+                    followed,
+                    NotificationType.FOLLOW,
+                    follower.getNickname() + "님이 나를 팔로우하기 시작했습니다.",
+                    "/profiles/" + follower.getId()
+            );
+        }
     }
 
     @Transactional

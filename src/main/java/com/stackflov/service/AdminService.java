@@ -26,6 +26,7 @@ public class AdminService {
     private final CommentRepository commentRepository;
     private final BookmarkService bookmarkService;
     private final FollowService followService;
+    private final NotificationService notificationService;
 
     // 모든 사용자 목록 조회
     @Transactional(readOnly = true)
@@ -119,6 +120,12 @@ public class AdminService {
         if (dto.getStatus() == ReportStatus.REVIEWED) {
             deleteReportedContent(report.getContentId(), report.getContentType());
         }
+        notificationService.notify(
+                report.getReporter(),
+                NotificationType.REPORT,
+                "신고 #" + report.getId() + " 처리 결과: " + dto.getStatus(),
+                "/admin/reports/" + report.getId()
+        );
     }
 
     private void deleteReportedContent(Long contentId, ReportType contentType) {

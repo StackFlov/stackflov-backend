@@ -2,6 +2,7 @@ package com.stackflov.service;
 
 import com.stackflov.domain.Board;
 import com.stackflov.domain.Like;
+import com.stackflov.domain.NotificationType;
 import com.stackflov.domain.User;
 import com.stackflov.repository.BoardRepository;
 import com.stackflov.repository.LikeRepository;
@@ -19,6 +20,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void addLike(String email, Long boardId) {
@@ -34,12 +36,37 @@ public class LikeService {
             if (like.isActive()) {
                 throw new IllegalArgumentException("이미 좋아요를 누른 게시글입니다.");
             }
-            like.activate();                 // 👈 리액티베이션
+            like.activate();
             likeRepository.save(like);
+
+            // ✅ 좋아요 알림 (본인 글 좋아요는 스킵)
+            if (!board.getAuthor().getId().equals(user.getId())) {
+                notificationService.notify(
+                        board.getAuthor(),
+                        NotificationType.LIKE,
+                        user.getNickname() + "님이 \"" + board.getTitle() + "\"를 좋아합니다.",
+                        "/boards/" + board.getId()
+                );
+            }
             return;
         }
 
-        likeRepository.save(Like.builder().user(user).board(board).build());
+        Like newLike = likeRepository.save(
+                Like.builder()
+                        .user(user)
+                        .board(board)
+                        .build()
+        );
+
+        // ✅ 좋아요 알림 (본인 글 좋아요는 스킵)
+        if (!board.getAuthor().getId().equals(user.getId())) {
+            notificationService.notify(
+                    board.getAuthor(),
+                    NotificationType.LIKE,
+                    user.getNickname() + "님이 \"" + board.getTitle() + "\"를 좋아합니다.",
+                    "/boards/" + board.getId()
+            );
+        }
     }
 
     @Transactional
