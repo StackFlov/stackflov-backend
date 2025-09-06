@@ -70,7 +70,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**", "/v3/api-docs/**", "/health",
                                 "/auth/login", "/auth/register", "/auth/reissue",
-                                "/auth/email/**", "/ws/**"
+                                "/auth/email/**", "/ws/**",
+                                "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**"
                         ).permitAll()
 
                         // Boards
