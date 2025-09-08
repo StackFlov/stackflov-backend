@@ -1,0 +1,60 @@
+package com.stackflov.service;
+
+import com.stackflov.domain.*;
+import com.stackflov.dto.*;
+import com.stackflov.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class MapService {
+
+    private final LocationRepository locationRepository;
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+
+    // 새로운 위치(화살표) 생성
+    @Transactional
+    public Long createLocation(LocationDto dto) {
+        Location location = Location.builder()
+                .address(dto.getAddress())
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
+                .build();
+        return locationRepository.save(location).getId();
+    }
+
+    // 특정 위치에 리뷰 작성
+    @Transactional
+    public Long createReview(Long locationId, ReviewRequestDto dto, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("위치를 찾을 수 없습니다."));
+
+        Review review = Review.builder()
+                .location(location)
+                .author(user)
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .build();
+        return reviewRepository.save(review).getId();
+    }
+
+    // 특정 위치의 모든 리뷰 조회
+    @Transactional(readOnly = true)
+    public List<LocationDto> getLocationsInMap(MapBoundaryDto dto) {
+        return locationRepository.findLocationsInBoundary(
+                dto.getSwLat(), dto.getSwLng(),
+                dto.getNeLat(), dto.getNeLng()
+        ).stream().map(LocationDto::new).collect(Collectors.toList());
+    }
+
+    // (지도 영역 내 위치 조회 기능은 여기에 추가됩니다)
+}

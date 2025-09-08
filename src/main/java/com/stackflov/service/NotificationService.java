@@ -25,7 +25,7 @@ public class NotificationService {
     public void notify(User receiver, NotificationType type, String message, String link) {
         Notification n = Notification.builder()
                 .receiver(receiver)
-                .type(type)
+                .notificationType(type)
                 .message(message)
                 .link(link)
                 .build();

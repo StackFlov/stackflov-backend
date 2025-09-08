@@ -27,8 +27,8 @@ public class Notification {
     private User receiver;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private NotificationType type;
+    @Column(nullable = false,name = "`type`")
+    private NotificationType notificationType;
 
     // 리스트에서 바로 보여줄 간단 메시지
     @Column(nullable = false, length = 200)
@@ -39,13 +39,13 @@ public class Notification {
     private String link;
 
     @Builder.Default
-    @Column(nullable = false)
-    private boolean read = false;
+    @Column(nullable = false, name = "`read`")
+    private boolean isRead = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     public void markRead() {
-        this.read = true;
+        this.isRead = true;
     }
 }

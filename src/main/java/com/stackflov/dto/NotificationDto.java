@@ -17,7 +17,7 @@ public class NotificationDto {
 
     public NotificationDto(Notification n) {
         this.id = n.getId();
-        this.type = n.getType();
+        this.type = n.getNotificationType();
         this.message = n.getMessage();
         this.link = n.getLink();
         this.read = n.isRead();
