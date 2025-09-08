@@ -71,7 +71,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/v3/api-docs/**", "/health",
                                 "/auth/login", "/auth/register", "/auth/reissue",
                                 "/auth/email/**", "/ws/**",
-                                "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**", "/test.html"
+                                "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**", "/api/keys/kakao", "/test.html"
                         ).permitAll()
 
                         // Boards

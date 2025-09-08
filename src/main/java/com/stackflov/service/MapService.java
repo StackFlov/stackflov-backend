@@ -57,4 +57,10 @@ public class MapService {
     }
 
     // (지도 영역 내 위치 조회 기능은 여기에 추가됩니다)
+    public List<ReviewResponseDto> getReviews(Long locationId) {
+        List<Review> reviews = reviewRepository.findByLocationId(locationId);
+        return reviews.stream()
+                .map(ReviewResponseDto::new)
+                .collect(Collectors.toList());
+    }
 }
