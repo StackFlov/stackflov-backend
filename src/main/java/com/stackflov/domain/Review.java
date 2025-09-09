@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -44,6 +46,9 @@ public class Review {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewImage> reviewImages = new ArrayList<>();
+
     @Builder
     public Review(Location location, User author, String title, String content, int rating) {
         this.location = location;
@@ -51,5 +56,9 @@ public class Review {
         this.title = title;
         this.content = content;
         this.rating = rating;
+    }
+    public void addReviewImage(ReviewImage reviewImage) {
+        reviewImages.add(reviewImage);
+        reviewImage.setReview(this); // ReviewImage에서 review 필드를 설정하는 setter가 필요함
     }
 }

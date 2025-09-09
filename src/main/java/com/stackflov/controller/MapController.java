@@ -4,9 +4,11 @@ import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.*;
 import com.stackflov.service.MapService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,23 +20,16 @@ public class MapController {
     private final MapService mapService;
 
     // 새로운 위치(화살표) 생성 API
-    @PostMapping("/locations")
-    public ResponseEntity<Long> createLocation(@RequestBody LocationDto dto) {
-        Long locationId = mapService.createLocation(dto);
-        return ResponseEntity.ok(locationId);
-    }
-
-    // 특정 위치에 리뷰 작성 API
-    @PostMapping("/locations/{locationId}/reviews")
+    @PostMapping(value = "/locations/{locationId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> createReview(
             @PathVariable Long locationId,
-            @RequestBody ReviewRequestDto dto,
+            @RequestPart("dto") ReviewRequestDto dto, // JSON 데이터
+            @RequestPart(value = "images", required = false) List<MultipartFile> images, // 이미지 파일 목록
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        Long reviewId = mapService.createReview(locationId, dto, principal.getEmail());
+        Long reviewId = mapService.createReview(locationId, dto, principal.getEmail(), images);
         return ResponseEntity.ok(reviewId);
     }
-
     // 특정 위치의 모든 리뷰 조회 API
     @GetMapping("/locations/{locationId}/reviews")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(@PathVariable Long locationId) {
