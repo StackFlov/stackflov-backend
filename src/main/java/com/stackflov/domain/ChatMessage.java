@@ -25,7 +25,7 @@ public class ChatMessage {
 
     // 메시지를 보낸 사람 (다대일 관계)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User sender;
 
     @Lob // 긴 텍스트를 저장하기 위한 어노테이션

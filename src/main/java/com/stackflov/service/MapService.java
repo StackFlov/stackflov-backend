@@ -82,4 +82,26 @@ public class MapService {
                 .map(ReviewResponseDto::new)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public void updateReview(Long reviewId, ReviewRequestDto dto, String userEmail) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
+        if (!review.getAuthor().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+        }
+
+        review.update(dto.getTitle(), dto.getContent(), dto.getRating());
+    }
+    @Transactional
+    public void deleteReview(Long reviewId, String userEmail) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
+        if (!review.getAuthor().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
+        }
+
+        review.deactivate(); // 👈 delete -> deactivate 로 변경
+    }
 }

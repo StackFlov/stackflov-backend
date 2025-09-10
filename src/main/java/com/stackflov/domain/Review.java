@@ -1,20 +1,22 @@
 package com.stackflov.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "active = true")
+@Builder
+@AllArgsConstructor
 public class Review {
 
     @Id
@@ -46,6 +48,10 @@ public class Review {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default // 👈 추가
+    @Column(nullable = false)
+    private boolean active = true;
+
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> reviewImages = new ArrayList<>();
 
@@ -60,5 +66,14 @@ public class Review {
     public void addReviewImage(ReviewImage reviewImage) {
         reviewImages.add(reviewImage);
         reviewImage.setReview(this); // ReviewImage에서 review 필드를 설정하는 setter가 필요함
+    }
+    public void update(String title, String content, int rating) {
+        this.title = title;
+        this.content = content;
+        this.rating = rating;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }

@@ -43,4 +43,21 @@ public class MapController {
         List<LocationDto> locations = mapService.getLocationsInMap(dto);
         return ResponseEntity.ok(locations);
     }
+    @PutMapping("/reviews/{reviewId}")
+    public ResponseEntity<Void> updateReview(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewRequestDto dto,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        mapService.updateReview(reviewId, dto, principal.getEmail());
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        mapService.deleteReview(reviewId, principal.getEmail());
+        return ResponseEntity.noContent().build();
+    }
 }

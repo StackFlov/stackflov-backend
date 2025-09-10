@@ -23,7 +23,7 @@ public class Notification {
 
     // 알림 수신자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User receiver;
 
     @Enumerated(EnumType.STRING)
