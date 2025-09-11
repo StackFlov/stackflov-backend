@@ -15,6 +15,7 @@ public class ReportService {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public void createReport(String reporterEmail, ReportRequestDto dto) {
@@ -50,6 +51,10 @@ public class ReportService {
             case COMMENT:
                 commentRepository.findById(contentId)
                         .orElseThrow(() -> new IllegalArgumentException("신고할 댓글이 존재하지 않습니다."));
+                break;
+            case REVIEW:
+                reviewRepository.findById(contentId)
+                        .orElseThrow(() -> new IllegalArgumentException("신고할 리뷰가 존재하지 않습니다."));
                 break;
             default:
                 throw new IllegalArgumentException("알 수 없는 콘텐츠 타입입니다.");

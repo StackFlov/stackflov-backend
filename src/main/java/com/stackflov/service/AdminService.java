@@ -27,6 +27,7 @@ public class AdminService {
     private final BookmarkService bookmarkService;
     private final FollowService followService;
     private final NotificationService notificationService;
+    private final MapService mapService;
 
     // 모든 사용자 목록 조회
     @Transactional(readOnly = true)
@@ -133,6 +134,8 @@ public class AdminService {
             boardService.deactivateBoardByAdmin(contentId);
         } else if (contentType == ReportType.COMMENT) {
             commentService.deleteCommentByAdmin(contentId);
+        } else if (contentType == ReportType.REVIEW) { // 👇 REVIEW 타입 처리 로직 추가
+            mapService.deactivateReviewByAdmin(contentId);
         }
     }
 

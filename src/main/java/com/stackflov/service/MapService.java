@@ -21,6 +21,7 @@ public class MapService {
     private final UserRepository userRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
+    private final CommentRepository commentRepository;
 
     // 새로운 위치(화살표) 생성
     @Transactional
@@ -103,5 +104,16 @@ public class MapService {
         }
 
         review.deactivate(); // 👈 delete -> deactivate 로 변경
+    }
+    @Transactional
+    public void deactivateReviewByAdmin(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
+        // 리뷰 비활성화
+        review.deactivate();
+
+        // 해당 리뷰에 달린 모든 댓글도 함께 비활성화
+        commentRepository.findByReviewIdAndActiveTrue(reviewId).forEach(Comment::deactivate);
     }
 }
