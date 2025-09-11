@@ -45,4 +45,10 @@ public class CommentController {
         List<CommentResponseDto> comments = commentService.getCommentsByBoardId(boardId);
         return ResponseEntity.ok(comments);
     }
+
+    @GetMapping("/review/{reviewId}")
+    public ResponseEntity<List<CommentResponseDto>> getCommentsByReview(@PathVariable Long reviewId) {
+        List<CommentResponseDto> comments = commentService.getCommentsByReviewId(reviewId);
+        return ResponseEntity.ok(comments);
+    }
 }

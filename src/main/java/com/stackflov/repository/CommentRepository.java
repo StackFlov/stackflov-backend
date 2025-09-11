@@ -27,4 +27,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findByUser(User user, Pageable pageable);
 
     List<Comment> findByUser(User user);
+
+    List<Comment> findByReviewIdAndActiveTrue(Long reviewId);
+
+    Page<Comment> findByUserAndBoardIsNotNull(User user, Pageable pageable);
+
+    Page<Comment> findByUserAndReviewIsNotNull(User user, Pageable pageable);
 }

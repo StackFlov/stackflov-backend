@@ -115,6 +115,19 @@ public class SecurityConfig {
                         // Feed
                         .requestMatchers("/feed").authenticated()
 
+                        //내가 작성한 게시글,
+                        .requestMatchers("/my/**").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/map/**").permitAll() // 지도 위치, 리뷰 조회 등
+                        .requestMatchers(HttpMethod.GET, "/notifications/**").permitAll() // 알림 조회 (또는 authenticated)
+                        .requestMatchers(HttpMethod.GET, "/comments/review/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/map/locations").authenticated() // 위치 생성
+                        .requestMatchers(HttpMethod.POST, "/map/locations/**/reviews").authenticated() // 리뷰 생성
+                        .requestMatchers(HttpMethod.PUT, "/map/reviews/**").authenticated() // 리뷰 수정
+                        .requestMatchers(HttpMethod.DELETE, "/map/reviews/**").authenticated() // 리뷰 삭제
+                        .requestMatchers(HttpMethod.POST, "/notifications/**").authenticated() // 알림 읽음 처리 등
+
                         // 나머지
                         .anyRequest().authenticated()
                 )

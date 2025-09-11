@@ -20,9 +20,13 @@ public class Comment {
     @Column(name = "comment_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;  // 댓글이 달린 게시판
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id") // nullable = false 제거
+    private Board board; // 댓글이 달린 게시판
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id") // 리뷰 댓글일 경우 여기에 값이 들어감
+    private Review review;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
