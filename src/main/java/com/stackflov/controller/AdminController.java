@@ -119,4 +119,13 @@ public class AdminController {
         boardService.deactivateBoardByAdmin(boardId);
         return ResponseEntity.ok("삭제 완료");
     }
+
+    @PutMapping("/content/{contentType}/{contentId}/reactivate")
+    public ResponseEntity<String> reactivateContent(
+            @PathVariable String contentType,
+            @PathVariable Long contentId
+    ) {
+        adminService.reactivateContent(contentType, contentId);
+        return ResponseEntity.ok("콘텐츠가 성공적으로 복구되었습니다.");
+    }
 }

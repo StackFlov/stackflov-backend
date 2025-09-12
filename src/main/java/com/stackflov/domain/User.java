@@ -79,4 +79,10 @@ public class User {
     public void updateStatus(boolean active) {
         this.active = active;
     }
+
+    public void setSuspensionEndDate(LocalDateTime suspensionEndDate) {this.suspensionEndDate = suspensionEndDate;}
+
+    public void setReportCount(int reportCount) {
+        this.reportCount = reportCount;
+    }
 }

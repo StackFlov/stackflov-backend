@@ -2,10 +2,7 @@ package com.stackflov.service;
 
 import com.stackflov.domain.*;
 import com.stackflov.dto.*;
-import com.stackflov.repository.BoardRepository;
-import com.stackflov.repository.CommentRepository;
-import com.stackflov.repository.ReportRepository;
-import com.stackflov.repository.UserRepository;
+import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +27,7 @@ public class AdminService {
     private final FollowService followService;
     private final NotificationService notificationService;
     private final MapService mapService;
+    private final ReviewRepository reviewRepository;
 
     // 모든 사용자 목록 조회
     @Transactional(readOnly = true)
@@ -199,5 +199,53 @@ public class AdminService {
         }
         // 이 외의 타입이 있다면 예외 처리
         throw new IllegalArgumentException("지원하지 않는 신고 타입입니다.");
+    }
+
+    @Transactional
+    public void reactivateContent(String contentType, Long contentId) {
+        if ("board".equalsIgnoreCase(contentType)) {
+            Board board = boardRepository.findById(contentId)
+                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+            board.activate();
+        } else if ("comment".equalsIgnoreCase(contentType)) {
+            Comment comment = commentRepository.findById(contentId)
+                    .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+            comment.activate();
+        } else if ("review".equalsIgnoreCase(contentType)) {
+            Review review = reviewRepository.findById(contentId)
+                    .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+            review.activate();
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 콘텐츠 타입입니다.");
+        }
+    }
+
+    @Transactional
+    public void suspendUser(Long userId, SuspensionPeriod period) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        LocalDateTime suspensionEnd = null;
+        switch (period) {
+            case THREE_DAYS:
+                suspensionEnd = LocalDateTime.now().plusDays(3);
+                break;
+            case SEVEN_DAYS: // 👈 수정
+                suspensionEnd = LocalDateTime.now().plusDays(7);
+                break;
+            case TEN_DAYS: // 👈 추가
+                suspensionEnd = LocalDateTime.now().plusDays(10);
+                break;
+            case THIRTY_DAYS: // 👈 수정
+                suspensionEnd = LocalDateTime.now().plusDays(30);
+                break;
+            case SIX_MONTHS: // 👈 추가
+                suspensionEnd = LocalDateTime.now().plusMonths(6);
+                break;
+            case PERMANENT:
+                suspensionEnd = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+                break;
+        }
+        user.setSuspensionEndDate(suspensionEnd);
     }
 }

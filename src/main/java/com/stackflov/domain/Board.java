@@ -71,4 +71,8 @@ public class Board {
         this.content = content;
         this.category = category;
     }
+
+    public void activate() {
+        this.active = true;
+    }
 }
