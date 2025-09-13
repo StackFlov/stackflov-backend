@@ -16,11 +16,12 @@ public class ReportService {
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
+    private final UserService userService;
 
     @Transactional
     public void createReport(String reporterEmail, ReportRequestDto dto) {
-        User reporter = userRepository.findByEmail(reporterEmail)
-                .orElseThrow(() -> new IllegalArgumentException("신고자를 찾을 수 없습니다."));
+        User reporter = userService.getValidUserByEmail(reporterEmail);
+
 
         // 신고 대상 콘텐츠가 실제로 존재하는지 확인
         validateContentExists(dto.getContentId(), dto.getContentType());

@@ -23,11 +23,11 @@ public class CommentService {
     private final BoardRepository boardRepository;
     private final NotificationService notificationService;
     private final ReviewRepository reviewRepository;
+    private final UserService userService;
 
     @Transactional
     public Long createComment(CommentRequestDto dto, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+        User user = userService.getValidUserByEmail(userEmail);
 
         Comment.CommentBuilder commentBuilder = Comment.builder()
                 .user(user)

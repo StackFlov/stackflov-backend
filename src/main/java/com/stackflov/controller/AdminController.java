@@ -128,4 +128,13 @@ public class AdminController {
         adminService.reactivateContent(contentType, contentId);
         return ResponseEntity.ok("콘텐츠가 성공적으로 복구되었습니다.");
     }
+
+    @PutMapping("/users/{userId}/suspend")
+    public ResponseEntity<String> suspendUser(
+            @PathVariable Long userId,
+            @RequestBody UserSuspensionRequestDto dto) {
+        adminService.suspendUser(userId, dto.getPeriod());
+        return ResponseEntity.ok("사용자가 성공적으로 정지 처리되었습니다.");
+    }
+
 }

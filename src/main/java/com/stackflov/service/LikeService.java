@@ -21,11 +21,11 @@ public class LikeService {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final NotificationService notificationService;
+    private final UserService userService;
 
     @Transactional
     public void addLike(String email, Long boardId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(email);
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
@@ -71,8 +71,7 @@ public class LikeService {
 
     @Transactional
     public void removeLike(String email, Long boardId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(email);
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 

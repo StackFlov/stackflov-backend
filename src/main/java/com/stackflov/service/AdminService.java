@@ -54,7 +54,6 @@ public class AdminService {
         targetUser.updateRole(dto.getRole());
     }
 
-    // 사용자 계정 상태 변경 (활성/비활성)
     @Transactional
     public void updateUserStatus(Long userId, UserStatUpdateRequestDto dto, String adminEmail) {
         User targetUser = userRepository.findById(userId)
@@ -248,4 +247,6 @@ public class AdminService {
         }
         user.setSuspensionEndDate(suspensionEnd);
     }
+
+
 }

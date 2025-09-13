@@ -22,6 +22,7 @@ public class MapService {
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
     private final CommentRepository commentRepository;
+    private final UserService userService;
 
     // 새로운 위치(화살표) 생성
     @Transactional
@@ -37,8 +38,7 @@ public class MapService {
     // 특정 위치에 리뷰 작성
     @Transactional
     public Long createReview(Long locationId, ReviewRequestDto dto, String userEmail, List<MultipartFile> images) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(userEmail);
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("위치를 찾을 수 없습니다."));
 

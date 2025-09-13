@@ -28,6 +28,7 @@ public class BoardService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final S3Service s3Service;
+    private final UserService userService;
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -227,8 +228,7 @@ public class BoardService {
     }
     @Transactional
     public Long createBoardWithFiles(String email, BoardCreateRequestDto data, List<MultipartFile> images) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(email);
 
         // 1) 게시글 생성
         Board board = Board.builder()

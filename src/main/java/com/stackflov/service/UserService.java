@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -21,8 +23,7 @@ public class UserService {
     private final RedisService redisService;
 
     public TokenResponseDto login(LoginRequestDto requestDto) {
-        User user = userRepository.findByEmailAndActiveTrue(requestDto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("이메일이 존재하지 않거나 비활성화된 계정입니다."));
+        User user = getValidUserByEmail(requestDto.getEmail());
 
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
@@ -72,8 +73,7 @@ public class UserService {
     }
     @Transactional
     public void updateUser(String email, UserUpdateRequestDto dto) {
-        User user = userRepository.findByEmailAndActiveTrue(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
+        User user = getValidUserByEmail(email);
 
         if (dto.getNickname() != null) {
             user.updateNickname(dto.getNickname());
@@ -86,8 +86,7 @@ public class UserService {
     @Transactional
     public void updatePassword(String email, PasswordUpdateRequestDto dto) {
         // 사용자 확인
-        User user = userRepository.findByEmailAndActiveTrue(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
+        User user = getValidUserByEmail(email);
 
         // 현재 비밀번호 확인
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
@@ -96,5 +95,15 @@ public class UserService {
 
         // 새 비밀번호로 변경
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    }
+
+    public User getValidUserByEmail(String email) {
+        User user = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 비활성화된 계정입니다."));
+
+        if (user.getSuspensionEndDate() != null && user.getSuspensionEndDate().isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("정지된 계정입니다. 해제일: " + user.getSuspensionEndDate());
+        }
+        return user;
     }
 }

@@ -22,11 +22,11 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
+    private final UserService userService;
 
     @Transactional
     public BookmarkResponseDto addBookmark(String userEmail, BookmarkRequestDto requestDto) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(userEmail);
         Board board = boardRepository.findById(requestDto.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
@@ -45,8 +45,7 @@ public class BookmarkService {
 
     @Transactional
     public void removeBookmark(String userEmail, BookmarkRequestDto requestDto) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userService.getValidUserByEmail(userEmail);
         Board board = boardRepository.findById(requestDto.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
