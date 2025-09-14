@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class AdminService {
     private final NotificationService notificationService;
     private final MapService mapService;
     private final ReviewRepository reviewRepository;
+    private final AdminNoteRepository adminNoteRepository;
 
     // 모든 사용자 목록 조회
     @Transactional(readOnly = true)
@@ -247,6 +250,38 @@ public class AdminService {
         }
         user.setSuspensionEndDate(suspensionEnd);
     }
+    @Transactional
+    public AdminMemoResponseDto addMemoToUser(Long targetUserId, String adminEmail, AdminMemoRequestDto dto) {
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("메모 대상 사용자를 찾을 수 없습니다."));
 
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new IllegalArgumentException("관리자 계정을 찾을 수 없습니다."));
+
+        if (admin.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("메모를 작성할 권한이 없습니다.");
+        }
+
+        AdminNote note = AdminNote.builder()
+                .targetUser(targetUser)
+                .admin(admin)
+                .content(dto.getContent())
+                .build();
+
+        AdminNote savedNote = adminNoteRepository.save(note);
+        return new AdminMemoResponseDto(savedNote);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminMemoResponseDto> getMemosForUser(Long targetUserId) {
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("메모 조회 대상 사용자를 찾을 수 없습니다."));
+
+        List<AdminNote> notes = adminNoteRepository.findByTargetUserOrderByCreatedAtDesc(targetUser);
+
+        return notes.stream()
+                .map(AdminMemoResponseDto::new)
+                .collect(Collectors.toList());
+    }
 
 }

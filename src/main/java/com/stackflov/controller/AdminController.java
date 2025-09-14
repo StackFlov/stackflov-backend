@@ -15,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -135,6 +137,21 @@ public class AdminController {
             @RequestBody UserSuspensionRequestDto dto) {
         adminService.suspendUser(userId, dto.getPeriod());
         return ResponseEntity.ok("사용자가 성공적으로 정지 처리되었습니다.");
+    }
+
+    @PostMapping("/users/{userId}/memos")
+    public ResponseEntity<AdminMemoResponseDto> addMemo(
+            @PathVariable Long userId,
+            @RequestBody AdminMemoRequestDto dto,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        AdminMemoResponseDto responseDto = adminService.addMemoToUser(userId, principal.getEmail(), dto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/users/{userId}/memos")
+    public ResponseEntity<List<AdminMemoResponseDto>> getMemos(@PathVariable Long userId) {
+        List<AdminMemoResponseDto> memos = adminService.getMemosForUser(userId);
+        return ResponseEntity.ok(memos);
     }
 
 }
