@@ -80,26 +80,6 @@ public class AdminService {
         }
     }
 
-    // --- Helper Methods ---
-    private User buildUserWithNewRole(User original, Role newRole) {
-        return User.builder()
-                .id(original.getId()).email(original.getEmail()).password(original.getPassword())
-                .nickname(original.getNickname()).profileImage(original.getProfileImage())
-                .socialType(original.getSocialType()).socialId(original.getSocialId())
-                .level(original.getLevel()).active(original.isActive())
-                .role(newRole) // 역할 변경
-                .createdAt(original.getCreatedAt()).build();
-    }
-
-    private User buildUserWithNewStatus(User original, boolean newStatus) {
-        return User.builder()
-                .id(original.getId()).email(original.getEmail()).password(original.getPassword())
-                .nickname(original.getNickname()).profileImage(original.getProfileImage())
-                .socialType(original.getSocialType()).socialId(original.getSocialId())
-                .level(original.getLevel()).role(original.getRole())
-                .active(newStatus) // 상태 변경
-                .createdAt(original.getCreatedAt()).build();
-    }
     @Transactional(readOnly = true)
     public Page<AdminReportDto> getPendingReports(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));

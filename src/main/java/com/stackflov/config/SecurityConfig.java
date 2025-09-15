@@ -128,6 +128,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/map/reviews/**").authenticated() // 리뷰 삭제
                         .requestMatchers(HttpMethod.POST, "/notifications/**").authenticated() // 알림 읽음 처리 등
 
+                        .requestMatchers(HttpMethod.GET, "/notices/**").permitAll()
+                        .requestMatchers("/admin/notices/**").hasRole("ADMIN")
+
                         // 나머지
                         .anyRequest().authenticated()
                 )
