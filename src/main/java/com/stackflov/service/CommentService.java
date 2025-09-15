@@ -24,10 +24,15 @@ public class CommentService {
     private final NotificationService notificationService;
     private final ReviewRepository reviewRepository;
     private final UserService userService;
+    private final BannedWordService bannedWordService;
 
     @Transactional
     public Long createComment(CommentRequestDto dto, String userEmail) {
         User user = userService.getValidUserByEmail(userEmail);
+
+        if (bannedWordService.containsBannedWord(dto.getContent())) {
+            throw new IllegalArgumentException("내용에 금지된 단어가 포함되어 있습니다.");
+        }
 
         Comment.CommentBuilder commentBuilder = Comment.builder()
                 .user(user)
@@ -81,6 +86,11 @@ public class CommentService {
         if (!comment.getUser().getEmail().equals(userEmail)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
+
+        if (bannedWordService.containsBannedWord(content)) {
+            throw new IllegalArgumentException("내용에 금지된 단어가 포함되어 있습니다.");
+        }
+
         comment.updateContent(content);
     }
 

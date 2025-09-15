@@ -1,8 +1,10 @@
 package com.stackflov.controller;
 
 import com.stackflov.config.CustomUserPrincipal;
+import com.stackflov.domain.BannedWord;
 import com.stackflov.dto.*;
 import com.stackflov.service.AdminService;
+import com.stackflov.service.BannedWordService;
 import com.stackflov.service.BoardService;
 import com.stackflov.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class AdminController {
     private final AdminService adminService;
     private final DashboardService dashboardService;
     private final BoardService boardService;
+    private final BannedWordService bannedWordService;
 
     @GetMapping("/users")
     public ResponseEntity<Page<AdminUserDto>> getUsers(
@@ -176,5 +179,23 @@ public class AdminController {
     public ResponseEntity<DetailedStatsDto> getDetailedStats() {
         DetailedStatsDto stats = dashboardService.getDetailedStats();
         return ResponseEntity.ok(stats);
+    }
+
+    // --- 금칙어 관리 API ---
+    @GetMapping("/banned-words")
+    public ResponseEntity<List<BannedWord>> getAllBannedWords() {
+        return ResponseEntity.ok(bannedWordService.getAllBannedWords());
+    }
+
+    @PostMapping("/banned-words")
+    public ResponseEntity<BannedWord> addBannedWord(@RequestBody BannedWordRequestDto dto) {
+        BannedWord newWord = bannedWordService.addBannedWord(dto.getWord());
+        return ResponseEntity.ok(newWord);
+    }
+
+    @DeleteMapping("/banned-words")
+    public ResponseEntity<Void> deleteBannedWord(@RequestBody BannedWordRequestDto dto) {
+        bannedWordService.deleteBannedWord(dto.getWord());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -29,6 +29,7 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final S3Service s3Service;
     private final UserService userService;
+    private final BannedWordService bannedWordService;
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -110,6 +111,10 @@ public class BoardService {
 
         if (!board.getAuthor().getEmail().equals(email)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+        }
+
+        if (bannedWordService.containsBannedWord(dto.getTitle()) || bannedWordService.containsBannedWord(dto.getContent())) {
+            throw new IllegalArgumentException("제목이나 내용에 금지된 단어가 포함되어 있습니다.");
         }
 
         board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
@@ -221,6 +226,10 @@ public class BoardService {
     @Transactional
     public Long createBoardWithFiles(String email, BoardCreateRequestDto data, List<MultipartFile> images) {
         User user = userService.getValidUserByEmail(email);
+
+        if (bannedWordService.containsBannedWord(data.getTitle()) || bannedWordService.containsBannedWord(data.getContent())) {
+            throw new IllegalArgumentException("제목이나 내용에 금지된 단어가 포함되어 있습니다.");
+        }
 
         // 1) 게시글 생성
         Board board = Board.builder()
