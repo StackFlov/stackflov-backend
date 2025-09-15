@@ -155,42 +155,33 @@ public class BoardService {
 
     @Transactional
     public void deactivateOwnBoard(String email, Long boardId) {
+        // 1. 게시글 조회 및 소유권 확인 로직은 그대로 둡니다.
         Board board = boardRepository.findByIdAndActiveTrue(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없거나 이미 삭제되었습니다."));
 
         if (!board.getAuthor().getEmail().equals(email)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
-        board.deactivate();
 
-        // 댓글/북마크/좋아요 연쇄 비활성화
-        List<Comment> comments = commentRepository.findByBoardId(boardId);
-        for (Comment comment : comments) comment.deactivate();
-
-        List<Bookmark> bookmarks = bookmarkRepository.findByBoard(board);
-        for (Bookmark bookmark : bookmarks) bookmark.deactivate();
-
-        List<Like> likes = likeRepository.findByBoard(board);
-        for (Like like : likes) like.deactivate();
-
-        // 이미지도 비활성화
-        for (BoardImage img : board.getImages()) {
-            if (img.isActive()) img.deactivate();
-        }
+        // 2. 복잡했던 비활성화 로직을 모두 지우고, 방금 만든 메서드를 호출하는 한 줄만 남깁니다.
+        deactivateBoardAndAssociations(boardId);
     }
 
     @Transactional
     public void deactivateBoardByAdmin(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        board.deactivate();
+        // 👇 관리자 삭제 기능도 강력한 버전으로 변경
+        deactivateBoardAndAssociations(boardId);
     }
 
-    private void deactivateBoardAndAssociations(Board board) {
+    @Transactional
+    public void deactivateBoardAndAssociations(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
         board.deactivate();
+        commentRepository.findByBoardId(boardId).forEach(Comment::deactivate); // 댓글 포함
         bookmarkRepository.findByBoard(board).forEach(Bookmark::deactivate);
         likeRepository.findByBoard(board).forEach(Like::deactivate);
-        // 이미지도 함께 비활성화
         board.getImages().forEach(img -> { if (img.isActive()) img.deactivate(); });
     }
 
@@ -198,7 +189,8 @@ public class BoardService {
     public void deactivateAllBoardsByUser(User user) {
         List<Board> boards = boardRepository.findByAuthor(user);
         for (Board board : boards) {
-            deactivateBoardAndAssociations(board);
+            // 👇 새로 만든 public 메서드를 board ID로 호출합니다.
+            deactivateBoardAndAssociations(board.getId());
         }
     }
 

@@ -154,4 +154,21 @@ public class AdminController {
         return ResponseEntity.ok(memos);
     }
 
+    @PostMapping("/boards/bulk-deactivate")
+    public ResponseEntity<String> bulkDeactivateBoards(@RequestBody BulkActionRequestDto dto) {
+        adminService.bulkDeactivateBoards(dto.getIds());
+        return ResponseEntity.ok("선택한 게시글들이 성공적으로 비활성화되었습니다.");
+    }
+
+    @PostMapping("/comments/bulk-deactivate")
+    public ResponseEntity<String> bulkDeactivateComments(@RequestBody BulkActionRequestDto dto) {
+        adminService.bulkDeactivateComments(dto.getIds());
+        return ResponseEntity.ok("선택한 댓글들이 성공적으로 비활성화되었습니다.");
+    }
+
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<String> deactivateReviewByAdmin(@PathVariable Long reviewId) {
+        adminService.deactivateReviewByAdmin(reviewId);
+        return ResponseEntity.ok("리뷰가 성공적으로 비활성화되었습니다.");
+    }
 }

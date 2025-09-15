@@ -264,4 +264,28 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void bulkDeactivateBoards(List<Long> boardIds) {
+        if (boardIds == null || boardIds.isEmpty()) return;
+
+        for (Long boardId : boardIds) {
+            // 리팩토링된 BoardService의 메서드를 호출해 연관 엔티티까지 모두 처리
+            boardService.deactivateBoardAndAssociations(boardId);
+        }
+    }
+
+    @Transactional
+    public void bulkDeactivateComments(List<Long> commentIds) {
+        if (commentIds == null || commentIds.isEmpty()) return;
+
+        // Repository에 추가한 벌크 연산 쿼리를 직접 호출
+        commentRepository.bulkDeactivateByIds(commentIds);
+    }
+
+    @Transactional
+    public void deactivateReviewByAdmin(Long reviewId) {
+        // 실제 로직은 MapService에 위임
+        mapService.deactivateReviewByAdmin(reviewId);
+    }
+
 }

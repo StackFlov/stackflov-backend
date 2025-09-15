@@ -6,6 +6,7 @@ import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -33,4 +34,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findByUserAndBoardIsNotNull(User user, Pageable pageable);
 
     Page<Comment> findByUserAndReviewIsNotNull(User user, Pageable pageable);
+
+    @Modifying(clearAutomatically = true) // 벌크 연산 후 영속성 컨텍스트를 초기화
+    @Query("UPDATE Comment c SET c.active = false WHERE c.id IN :ids")
+    void bulkDeactivateByIds(@Param("ids") List<Long> ids);
 }
