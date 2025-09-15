@@ -25,6 +25,7 @@ public class CommentService {
     private final ReviewRepository reviewRepository;
     private final UserService userService;
     private final BannedWordService bannedWordService;
+    private final MentionService mentionService;
 
     @Transactional
     public Long createComment(CommentRequestDto dto, String userEmail) {
@@ -75,6 +76,7 @@ public class CommentService {
         }
 
         Comment comment = commentRepository.save(commentBuilder.build());
+        mentionService.processMentions(user, dto.getContent(), comment.getBoard(), comment);
         return comment.getId();
     }
 
@@ -92,6 +94,7 @@ public class CommentService {
         }
 
         comment.updateContent(content);
+        mentionService.processMentions(comment.getUser(), content, comment.getBoard(), comment);
     }
 
     // ⬇ 소프트 삭제

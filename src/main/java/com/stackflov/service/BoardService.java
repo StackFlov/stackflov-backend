@@ -30,6 +30,7 @@ public class BoardService {
     private final S3Service s3Service;
     private final UserService userService;
     private final BannedWordService bannedWordService;
+    private final MentionService mentionService;
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -118,6 +119,8 @@ public class BoardService {
         }
 
         board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
+
+        mentionService.processMentions(board.getAuthor(), dto.getContent(), board, null);
 
         // === 이미지 소프트 삭제/재정렬 ===
         // 현재 활성 이미지 Map (url -> entity)
@@ -257,6 +260,9 @@ public class BoardService {
         }
 
         Board savedBoard = boardRepository.save(board);
+
+        mentionService.processMentions(user, data.getContent(), savedBoard, null);
+
         return savedBoard.getId();
     }
 }

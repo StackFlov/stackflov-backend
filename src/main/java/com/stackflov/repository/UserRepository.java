@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM User u WHERE u.createdAt >= :startDate " +
             "GROUP BY date ORDER BY date")
     List<DailyStatProjection> countDailySignups(@Param("startDate") LocalDateTime startDate);
+
+    Optional<User> findByNickname(String nickname);
 }
