@@ -2,6 +2,7 @@ package com.stackflov.repository;
 
 import com.stackflov.domain.Board;
 import com.stackflov.domain.User;
+import com.stackflov.repository.projection.DailyStatProjection;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +34,7 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
     List<Board> findByAuthor(User author);
 
     Page<Board> findByAuthorInOrderByCreatedAtDesc(List<User> authors, Pageable pageable);
+
+    @Query("SELECT FUNCTION('DATE', b.createdAt) as date, COUNT(b.id) as count FROM Board b WHERE b.createdAt >= :startDate GROUP BY date ORDER BY date")
+    List<DailyStatProjection> countDailyBoards(@Param("startDate") LocalDateTime startDate);
 }

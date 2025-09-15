@@ -2,10 +2,14 @@ package com.stackflov.repository;
 
 import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
+import com.stackflov.repository.projection.DailyStatProjection;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.stackflov.domain.Role;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -24,4 +28,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByCreatedAtAfter(LocalDateTime dateTime);
 
     Optional<User> findByIdAndActiveTrue(Long id);
+
+    @Query("SELECT FUNCTION('DATE', u.createdAt) as date, COUNT(u.id) as count " +
+            "FROM User u WHERE u.createdAt >= :startDate " +
+            "GROUP BY date ORDER BY date")
+    List<DailyStatProjection> countDailySignups(@Param("startDate") LocalDateTime startDate);
 }

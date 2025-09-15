@@ -171,4 +171,10 @@ public class AdminController {
         adminService.deactivateReviewByAdmin(reviewId);
         return ResponseEntity.ok("리뷰가 성공적으로 비활성화되었습니다.");
     }
+
+    @GetMapping("/dashboard/detailed-stats")
+    public ResponseEntity<DetailedStatsDto> getDetailedStats() {
+        DetailedStatsDto stats = dashboardService.getDetailedStats();
+        return ResponseEntity.ok(stats);
+    }
 }
