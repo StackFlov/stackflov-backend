@@ -80,4 +80,15 @@ public class BoardController {
         return ResponseEntity.ok(boardId);
     }
 
+    @GetMapping("/tags/{tagName}")
+    public ResponseEntity<Page<BoardListResponseDto>> getBoardsByHashtag(
+            @PathVariable String tagName,
+            Pageable pageable,
+            @AuthenticationPrincipal @Nullable CustomUserPrincipal principal
+    ) {
+        String email = (principal != null) ? principal.getEmail() : null;
+        Page<BoardListResponseDto> boards = boardService.getBoardsByHashtag(tagName, pageable, email);
+        return ResponseEntity.ok(boards);
+    }
+
 }

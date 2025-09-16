@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final BoardImageRepository boardImageRepository;
     private final UserRepository userRepository;
     private final BookmarkRepository bookmarkRepository;
     private final LikeRepository likeRepository;
@@ -31,6 +30,7 @@ public class BoardService {
     private final UserService userService;
     private final BannedWordService bannedWordService;
     private final MentionService mentionService;
+    private final HashtagService hashtagService;
 
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
@@ -121,6 +121,8 @@ public class BoardService {
         board.update(dto.getTitle(), dto.getContent(), dto.getCategory());
 
         mentionService.processMentions(board.getAuthor(), dto.getContent(), board, null);
+
+        hashtagService.processHashtags(dto.getContent(), board);
 
         // === 이미지 소프트 삭제/재정렬 ===
         // 현재 활성 이미지 Map (url -> entity)
@@ -262,7 +264,37 @@ public class BoardService {
         Board savedBoard = boardRepository.save(board);
 
         mentionService.processMentions(user, data.getContent(), savedBoard, null);
+        hashtagService.processHashtags(data.getContent(), savedBoard);
 
         return savedBoard.getId();
+    }
+    @Transactional(readOnly = true)
+    public Page<BoardListResponseDto> getBoardsByHashtag(String tagName, Pageable pageable, String userEmail) {
+        // 1. Repository에 새로 추가한 쿼리를 호출합니다.
+        Page<Board> boards = boardRepository.findByHashtagName(tagName, pageable);
+
+        // 2. 로그인한 사용자의 북마크/좋아요 정보를 처리하는 로직 (getBoards와 동일)
+        User currentUser = (userEmail != null) ? userRepository.findByEmail(userEmail).orElse(null) : null;
+        Set<Long> bookmarkedBoardIds = new HashSet<>();
+        if (currentUser != null) {
+            bookmarkRepository.findByUserAndActiveTrue(currentUser)
+                    .forEach(b -> bookmarkedBoardIds.add(b.getBoard().getId()));
+        }
+
+        // 3. 결과를 BoardListResponseDto로 변환하여 반환합니다.
+        return boards.map(board -> BoardListResponseDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .authorNickname(board.getAuthor().getNickname())
+                .authorId(board.getAuthor().getId())
+                .thumbnailUrl(board.getImages().stream()
+                        .filter(BoardImage::isActive)
+                        .findFirst().map(BoardImage::getImageUrl).orElse(null))
+                .viewCount(board.getViewCount())
+                .createdAt(board.getCreatedAt())
+                .likeCount(likeRepository.countByBoardAndActiveTrue(board))
+                .isBookmarked(bookmarkedBoardIds.contains(board.getId()))
+                .isLiked(currentUser != null && likeRepository.existsByUserAndBoardAndActiveTrue(currentUser, board))
+                .build());
     }
 }
