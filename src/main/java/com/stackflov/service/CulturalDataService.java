@@ -1,4 +1,3 @@
-/*
 package com.stackflov.service;
 
 import com.stackflov.domain.Location;
@@ -64,4 +63,3 @@ public class CulturalDataService {
         }
     }
 }
- */
