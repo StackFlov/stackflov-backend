@@ -15,4 +15,10 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
             @Param("swLat") Double swLat, @Param("swLng") Double swLng,
             @Param("neLat") Double neLat, @Param("neLng") Double neLng
     );
+
+    // 장소 이름으로 데이터 존재 여부 확인
+    boolean existsByName(String name);
+
+    // 주소로 데이터 존재 여부 확인
+    boolean existsByAddress(String address);
 }
