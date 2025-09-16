@@ -128,6 +128,10 @@ ncloud:
     service-id: ${NCP_SERVICE_ID}
     sender-phone: ${SENDER_PHONE_NUMBER}
 
+public-data:
+  seoul-api:
+    key: ${SEOUL_API_KEY}
+
 ---
 # 'dev' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
 spring:
