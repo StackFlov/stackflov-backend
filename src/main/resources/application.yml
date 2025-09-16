@@ -130,7 +130,8 @@ ncloud:
 
 public-data:
   seoul-api:
-    key: ${SEOUL_API_KEY}
+    key: ${SEOUL_API_KEY:}
+    enabled: ${SEOUL_API_ENABLED:false}
 
 ---
 # 'dev' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
