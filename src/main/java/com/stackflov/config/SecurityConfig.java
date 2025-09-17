@@ -45,7 +45,13 @@ public class SecurityConfig {
     public SecurityFilterChain swaggerAndHealthChain(HttpSecurity http) throws Exception {
 
         http
-                .securityMatcher("/swagger-ui/**", "/v3/api-docs/**", "/health")
+                .securityMatcher("/swagger-ui/**", "/v3/api-docs/**", "/health",
+                        "/swagger-ui.html",
+                        "/v3/api-docs",             // ← 하위
+                        "/v3/api-docs.yaml",
+                        "/swagger-resources/**",
+                        "/webjars/**", "/actuator/health"
+                )
                 .cors(c -> {}) // CORS 활성화(전역 설정 사용)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -71,7 +77,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/v3/api-docs/**", "/health",
                                 "/auth/login", "/auth/register", "/auth/reissue",
                                 "/auth/email/**", "/ws/**",
-                                "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**", "/api/keys/kakao", "/test.html"
+                                "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**", "/api/keys/kakao", "/test.html",
+                                "/swagger-ui.html",
+                                "/v3/api-docs","/v3/api-docs.yaml",
+                                "/swagger-resources/**","/webjars/**","/actuator/health"
                         ).permitAll()
 
                         // Boards
