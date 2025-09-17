@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .securityMatcher("/swagger-ui/**", "/v3/api-docs/**", "/health",
                         "/swagger-ui.html",
                         "/v3/api-docs",             // ← 하위
+                        "/v3/api-docs/",
                         "/v3/api-docs.yaml",
                         "/swagger-resources/**",
                         "/webjars/**", "/actuator/health"
