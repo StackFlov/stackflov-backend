@@ -37,4 +37,5 @@ public class AdminAccountInitializer {
     }
 
     // 심볼릭 링크 무중단 배포 테스트
+    // 무중단 배포 안정화 테스트
 }

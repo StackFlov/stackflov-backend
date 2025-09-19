@@ -64,6 +64,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # (비공개 레포면 필수) Docker Hub 로그인
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin || true
+
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             cd /home/ubuntu/app
