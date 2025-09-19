@@ -10,7 +10,7 @@ public class MapConfig {
     @Value("${kakao.javascript.key}") // application.yml에서 키를 읽어옴
     private String kakaoJsKey;
 
-    @GetMapping("/api/keys/kakao")
+    @GetMapping("/map/keys/kakao")
     public ResponseEntity<String> getKakaoJsKey() {
         return ResponseEntity.ok(kakaoJsKey);
     }

@@ -35,4 +35,6 @@ public class AdminAccountInitializer {
             }
         };
     }
+
+    // 심볼릭 링크 무중단 배포 테스트
 }
