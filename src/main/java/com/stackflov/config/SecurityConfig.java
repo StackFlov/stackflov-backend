@@ -168,9 +168,9 @@ public class SecurityConfig {
         // 프런트/도메인들 추가
         configuration.setAllowedOrigins(List.of(
                 "https://app.stackflov.com",
-                // 루트 도메인도 프론트로 쓰면 아래 주석 해제
-                // "https://stackflov.com",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "https://stackflov.com",
+                "https://www.stackflov.com"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
