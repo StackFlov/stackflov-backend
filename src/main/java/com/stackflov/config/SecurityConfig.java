@@ -81,7 +81,8 @@ public class SecurityConfig {
                                 "/oauth2/authorization/**", "/login/oauth2/code/**", "/oauth2/**", "/api/keys/kakao", "/test.html",
                                 "/swagger-ui.html",
                                 "/v3/api-docs","/v3/api-docs.yaml",
-                                "/swagger-resources/**","/webjars/**","/actuator/health"
+                                "/swagger-resources/**","/webjars/**","/actuator/health",
+                                "/error"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

@@ -44,11 +44,14 @@ public class BoardController {
         return ResponseEntity.ok(boards);
     }
 
-    @PutMapping("/{boardId}")
-    public ResponseEntity<?> updateBoard(@PathVariable Long boardId,
-                                         @RequestBody BoardUpdateRequestDto dto,
-                                         @AuthenticationPrincipal CustomUserPrincipal principal) {
-        boardService.updateBoard(principal.getEmail(), boardId, dto);
+    @PutMapping(value = "/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateBoard(
+            @PathVariable Long boardId,
+            @RequestPart("data") BoardUpdateRequestDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+
+        boardService.updateBoard(principal.getEmail(), boardId, dto, images);
         return ResponseEntity.ok().build();
     }
 

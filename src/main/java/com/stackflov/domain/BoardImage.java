@@ -57,4 +57,8 @@ public class BoardImage {
     }
 
     public boolean isActive() { return active; }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
 }

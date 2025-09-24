@@ -75,4 +75,9 @@ public class Board {
     public void activate() {
         this.active = true;
     }
+
+    public void addImage(BoardImage image) {
+        this.images.add(image);
+        image.setBoard(this); // 주인 쪽(FK) 세팅
+    }
 }
