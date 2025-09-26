@@ -39,6 +39,18 @@ public class Notice {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default
+    private boolean active = true;
+
+    private LocalDateTime deletedAt;
+
+    public boolean isActive() { return active; }
+
+    public void softDelete() {
+        this.active = false;
+        this.deletedAt = LocalDateTime.now();
+    }
+
     //== 비즈니스 로직 ==//
     public void update(String title, String content) {
         this.title = title;
