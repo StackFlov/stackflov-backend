@@ -141,6 +141,10 @@ public-data:
     key: ${SEOUL_API_KEY:}
     enabled: ${SEOUL_API_ENABLED:false}
 
+app:
+  defaults:
+    profile-image: https://d3sutbt651osyh.cloudfront.net/assets/profile/default.png
+
 ---
 # 'dev' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
 spring:

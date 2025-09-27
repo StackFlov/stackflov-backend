@@ -8,6 +8,7 @@ import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
+
+    @Value("${app.defaults.profile-image}")
+    private String defaultProfileImage;
 
     public TokenResponseDto login(LoginRequestDto requestDto) {
         User user = getValidUserByEmail(requestDto.getEmail());
@@ -39,6 +43,9 @@ public class UserService {
     public void register(SignupRequestDto signupRequestDto) {
         String email = signupRequestDto.getEmail();
 
+        String profile = (signupRequestDto.getProfileImage() == null || signupRequestDto.getProfileImage().isBlank())
+                ? defaultProfileImage
+                : signupRequestDto.getProfileImage();
 /*
         // ✅ 이메일 인증 여부 확인
         String verified = redisService.get("EMAIL_VERIFIED:" + email);
@@ -51,19 +58,19 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 */
+
         User user = User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
                 .nickname(signupRequestDto.getNickname())
-                .profileImage(signupRequestDto.getProfileImage())
-                .socialType(signupRequestDto.getSocialType() != null ? signupRequestDto.getSocialType() : SocialType.NONE)
+                .profileImage(profile)              // ✅ 여기
+                .socialType(SocialType.NONE)
                 .socialId(signupRequestDto.getSocialId())
-                .level(signupRequestDto.getLevel())
-                .role(signupRequestDto.getRole() != null ? signupRequestDto.getRole() : Role.USER)
+                .level(0)                           // 기본 고정
+                .role(Role.USER)                    // 기본 고정
                 .phoneNumber(signupRequestDto.getPhoneNumber())
                 .address(signupRequestDto.getAddress())
                 .build();
-
         userRepository.save(user);
     }
     public UserResponseDto getUserByEmail(String email) {
