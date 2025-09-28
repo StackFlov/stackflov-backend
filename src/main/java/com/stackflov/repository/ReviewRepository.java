@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // 👈
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.stackflov.domain.User;
@@ -18,4 +20,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     Page<Review> findByAuthor(User author, Pageable pageable);
     @Query("SELECT FUNCTION('DATE', r.createdAt) as date, COUNT(r.id) as count FROM Review r WHERE r.createdAt >= :startDate GROUP BY date ORDER BY date")
     List<DailyStatProjection> countDailyReviews(@Param("startDate") LocalDateTime startDate);
+    Optional<Review> findByIdAndActiveTrue(Long id);
 }
