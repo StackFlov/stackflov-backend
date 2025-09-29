@@ -67,8 +67,8 @@ public class AdminController {
     public ResponseEntity<String> processReport(
             @PathVariable Long reportId,
             @RequestBody ReportProcessRequestDto dto,
-            @AuthenticationPrincipal String adminEmail) {
-        adminService.processReport(reportId, dto, adminEmail);
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        adminService.processReport(reportId, dto, principal.getEmail());
         return ResponseEntity.ok("신고가 처리되었습니다.");
     }
 
