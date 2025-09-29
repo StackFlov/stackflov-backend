@@ -120,6 +120,14 @@ public class AdminService {
             mapService.deactivateReviewByAdmin(contentId);
         }
     }
+    @Transactional
+    public void deactivateCommentByAdmin(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        if (comment.isActive()) {
+            comment.deactivate();
+        }
+    }
 
     // 관리자용 게시글 검색
     @Transactional(readOnly = true)

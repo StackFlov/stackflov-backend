@@ -119,10 +119,15 @@ public class AdminController {
         return ResponseEntity.ok(comments);
     }
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{boardId}")
+    @DeleteMapping("/boards/{boardId}")
     public ResponseEntity<?> deleteBoardByAdmin(@PathVariable Long boardId) {
         boardService.deactivateBoardByAdmin(boardId);
         return ResponseEntity.ok("삭제 완료");
+    }
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<String> deactivateCommentByAdmin(@PathVariable Long commentId) {
+        adminService.deactivateCommentByAdmin(commentId);
+        return ResponseEntity.ok("댓글이 성공적으로 비활성화되었습니다.");
     }
 
     @PutMapping("/content/{contentType}/{contentId}/reactivate")
