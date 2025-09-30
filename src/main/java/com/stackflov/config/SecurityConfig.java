@@ -53,7 +53,7 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**", "/actuator/health"
                 )
-                .cors(c -> {}) // CORS 활성화(전역 설정 사용)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 활성화(전역 설정 사용)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
@@ -69,7 +69,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain appChain(HttpSecurity http) throws Exception {
         return http
-                .cors(c -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -175,7 +175,7 @@ public class SecurityConfig {
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
