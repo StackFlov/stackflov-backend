@@ -197,7 +197,18 @@ public class AdminController {
 
     @Operation(
             summary = "관리자: 사용자 정지",
-            description = "userId 사용자를 지정 기간만큼 활동 정지합니다."
+            description = """
+                    userId 사용자를 지정 기간만큼 활동 정지합니다. <br/>
+                    <b>기간 매핑(서버 시각 기준)</b>
+                     <ul>
+                         <li><code>THREE_DAYS</code> → 현재 시각 + 3일</li>
+                         <li><code>SEVEN_DAYS</code> → 현재 시각 + 7일</li>
+                         <li><code>TEN_DAYS</code> → 현재 시각 + 10일</li>
+                         <li><code>THIRTY_DAYS</code> → 현재 시각 + 30일</li>
+                         <li><code>SIX_MONTHS</code> → 현재 시각 + 6개월</li>
+                         <li><code>PERMANENT</code> → 9999-12-31T23:59:59 로 고정(사실상 영구)</li>
+                     </ul>
+                    """
     )
     @PutMapping("/users/{userId}/suspend")
     public ResponseEntity<String> suspendUser(
