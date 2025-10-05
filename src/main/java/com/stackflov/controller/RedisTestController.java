@@ -1,9 +1,11 @@
 package com.stackflov.controller;
 
 import com.stackflov.service.RedisService;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/redis")
