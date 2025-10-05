@@ -161,7 +161,7 @@ public class SecurityConfig {
     /**
      * CORS 전역 설정
      * - 필요 시 프런트/도메인 추가
-     */
+         */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
