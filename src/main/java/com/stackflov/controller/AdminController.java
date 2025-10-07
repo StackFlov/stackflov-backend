@@ -3,10 +3,7 @@ package com.stackflov.controller;
 import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.domain.BannedWord;
 import com.stackflov.dto.*;
-import com.stackflov.service.AdminService;
-import com.stackflov.service.BannedWordService;
-import com.stackflov.service.BoardService;
-import com.stackflov.service.DashboardService;
+import com.stackflov.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +28,7 @@ public class AdminController {
     private final DashboardService dashboardService;
     private final BoardService boardService;
     private final BannedWordService bannedWordService;
+    private final CommentService commentService;
 
     @Operation(
             summary = "관리자: 사용자 목록 조회",
@@ -178,7 +176,7 @@ public class AdminController {
     )
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<String> deactivateCommentByAdmin(@PathVariable Long commentId) {
-        adminService.deactivateCommentByAdmin(commentId);
+        commentService.deactivateCommentByAdmin(commentId);
         return ResponseEntity.ok("댓글이 성공적으로 비활성화되었습니다.");
     }
 
