@@ -151,9 +151,6 @@ spring:
   config:
     activate:
       on-profile: dev
-app:
-  oauth:
-    redirect-uri: http://localhost:3000/oauth-redirect
 
 ---
 # 'prod' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
@@ -164,6 +161,3 @@ spring:
 springdoc:
   swagger-ui:
     enabled: true
-app:
-  oauth:
-    redirect-uri: https://app.stackflov.com/oauth-redirect
