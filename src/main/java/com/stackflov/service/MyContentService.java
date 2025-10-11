@@ -26,23 +26,29 @@ public class MyContentService {
 
     public Page<BoardListResponseDto> getMyBoards(String email, Pageable pageable) {
         User user = getUserByEmail(email);
-        return boardRepository.findByAuthor(user, pageable).map(BoardListResponseDto::new);
+        // ⬇️ active=true만
+        return boardRepository.findByAuthorAndActiveTrue(user, pageable)
+                .map(BoardListResponseDto::new);
     }
 
     public Page<ReviewResponseDto> getMyReviews(String email, Pageable pageable) {
         User user = getUserByEmail(email);
-        return reviewRepository.findByAuthor(user, pageable).map(ReviewResponseDto::new);
+        // ⬇️ active=true만
+        return reviewRepository.findByAuthorAndActiveTrue(user, pageable)
+                .map(ReviewResponseDto::new);
     }
 
     public Page<CommentResponseDto> getMyBoardComments(String email, Pageable pageable) {
         User user = getUserByEmail(email);
-        return commentRepository.findByUserAndBoardIsNotNull(user, pageable)
+        // ⬇️ 내 댓글 + 댓글 active=true + 대상(Board) active=true
+        return commentRepository.findActiveByUserOnBoards(user, pageable)
                 .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
     }
 
     public Page<CommentResponseDto> getMyReviewComments(String email, Pageable pageable) {
         User user = getUserByEmail(email);
-        return commentRepository.findByUserAndReviewIsNotNull(user, pageable)
+        // ⬇️ 내 댓글 + 댓글 active=true + 대상(Review) active=true
+        return commentRepository.findActiveByUserOnReviews(user, pageable)
                 .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
     }
 }

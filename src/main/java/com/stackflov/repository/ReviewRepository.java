@@ -21,4 +21,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     @Query("SELECT FUNCTION('DATE', r.createdAt) as date, COUNT(r.id) as count FROM Review r WHERE r.createdAt >= :startDate GROUP BY date ORDER BY date")
     List<DailyStatProjection> countDailyReviews(@Param("startDate") LocalDateTime startDate);
     Optional<Review> findByIdAndActiveTrue(Long id);
+    Page<Review> findByAuthorAndActiveTrue(User author, Pageable pageable);
 }

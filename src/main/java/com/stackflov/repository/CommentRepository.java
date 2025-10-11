@@ -44,4 +44,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT FUNCTION('DATE', c.createdAt) as date, COUNT(c.id) as count FROM Comment c WHERE c.createdAt >= :startDate GROUP BY date ORDER BY date")
     List<DailyStatProjection> countDailyComments(@Param("startDate") LocalDateTime startDate);
 
+    @Query("SELECT c FROM Comment c WHERE c.user = :user AND c.board IS NOT NULL AND c.active = true AND c.board.active = true")
+    Page<Comment> findActiveByUserOnBoards(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT c FROM Comment c WHERE c.user = :user AND c.review IS NOT NULL AND c.active = true AND c.review.active = true")
+    Page<Comment> findActiveByUserOnReviews(@Param("user") User user, Pageable pageable);
 }
