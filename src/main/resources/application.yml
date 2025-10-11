@@ -166,4 +166,4 @@ springdoc:
     enabled: true
 app:
   oauth:
-    redirect-uri: https://localhost:3000/oauth-redirect
+    redirect-uri: https://app.stackflov.com/oauth-redirect
