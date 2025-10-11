@@ -49,25 +49,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
 
-    @Value("${app.frontend.base-url}")   // 예: https://app.stackflov.com
-    private String frontBaseUrl;
+    @Value("${app.oauth.redirect-uri}")
+    private String redirectUri;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest req, HttpServletResponse res, Authentication auth) throws IOException {
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) auth.getPrincipal();
+        CustomOAuth2User principal = (CustomOAuth2User) auth.getPrincipal();
+        String accessToken  = jwtProvider.createAccessToken(principal.getEmail(), principal.getRole());
+        String refreshToken = jwtProvider.createRefreshToken(principal.getEmail());
 
-        String email = oAuth2User.getEmail();
-        String role  = oAuth2User.getRole();
+        redisService.save("RT:" + principal.getEmail(), refreshToken, jwtProvider.REFRESH_TOKEN_EXPIRE_TIME);
 
-        String accessToken  = jwtProvider.createAccessToken(email, role);
-        String refreshToken = jwtProvider.createRefreshToken(email);
-
-        redisService.save("RT:" + email, refreshToken, jwtProvider.REFRESH_TOKEN_EXPIRE_TIME);
-
-        String targetUrl = UriComponentsBuilder.fromUriString(frontBaseUrl + "/oauth-redirect")
+        String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
-                .build(true) // 인코딩
+                .build(true)
                 .toUriString();
 
         getRedirectStrategy().sendRedirect(req, res, targetUrl);
