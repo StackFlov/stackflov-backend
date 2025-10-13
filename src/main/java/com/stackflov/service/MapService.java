@@ -3,13 +3,15 @@ package com.stackflov.service;
 import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +84,12 @@ public class MapService {
         return reviews.stream()
                 .map(ReviewResponseDto::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReviewListResponseDto> getReview(Pageable pageable, @Nullable String requesterEmail) {
+        Page<Review> page = reviewRepository.findByActiveTrue(pageable);
+        return page.map(r -> ReviewListResponseDto.from(r, requesterEmail));
     }
     @Transactional
     public void updateReview(Long reviewId, ReviewRequestDto dto, String userEmail) {

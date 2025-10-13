@@ -62,6 +62,7 @@ public class Review {
         this.title = title;
         this.content = content;
         this.rating = rating;
+
     }
     public void addReviewImage(ReviewImage reviewImage) {
         reviewImages.add(reviewImage);

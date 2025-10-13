@@ -22,4 +22,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     List<DailyStatProjection> countDailyReviews(@Param("startDate") LocalDateTime startDate);
     Optional<Review> findByIdAndActiveTrue(Long id);
     Page<Review> findByAuthorAndActiveTrue(User author, Pageable pageable);
+    Page<Review> findByActiveTrue(Pageable pageable);
 }
