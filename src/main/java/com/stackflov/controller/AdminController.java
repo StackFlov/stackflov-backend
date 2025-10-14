@@ -240,6 +240,35 @@ public class AdminController {
     }
 
     @Operation(
+            summary = "관리자: 사용자 메모 수정",
+            description = "해당 사용자(userId)의 메모(memoId) 내용을 수정합니다."
+    )
+    @PutMapping("/users/{userId}/memos/{memoId}")
+    public ResponseEntity<AdminMemoResponseDto> updateMemo(
+            @PathVariable Long userId,
+            @PathVariable Long memoId,
+            @RequestBody AdminMemoRequestDto dto,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        AdminMemoResponseDto response = adminService.updateMemoOfUser(userId, memoId, principal.getEmail(), dto);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "관리자: 사용자 메모 삭제",
+            description = "해당 사용자(userId)의 메모(memoId)를 삭제합니다."
+    )
+    @DeleteMapping("/users/{userId}/memos/{memoId}")
+    public ResponseEntity<Void> deleteMemo(
+            @PathVariable Long userId,
+            @PathVariable Long memoId,
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        adminService.deleteMemoOfUser(userId, memoId, principal.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
             summary = "관리자: 게시글 일괄 비활성화",
             description = "전달된 ID 배열로 여러 게시글을 한 번에 비활성화합니다."
     )

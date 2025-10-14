@@ -35,4 +35,8 @@ public class AdminNote {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 }

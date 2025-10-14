@@ -1,5 +1,6 @@
 package com.stackflov.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
@@ -294,6 +295,61 @@ public class AdminService {
     public void deactivateReviewByAdmin(Long reviewId) {
         // 실제 로직은 MapService에 위임
         mapService.deactivateReviewByAdmin(reviewId);
+    }
+
+    @Transactional
+    public AdminMemoResponseDto deleteMemoOfUser(Long targetUserId, Long memoId, String adminEmail) {
+        // 관리자 계정 확인
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new IllegalArgumentException("관리자 계정을 찾을 수 없습니다."));
+        if (admin.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("메모를 삭제할 권한이 없습니다.");
+        }
+
+        // 메모 조회
+        AdminNote note = adminNoteRepository.findById(memoId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 메모를 찾을 수 없습니다."));
+
+        // 대상 사용자 일치 검증
+        if (!note.getTargetUser().getId().equals(targetUserId)) {
+            throw new IllegalArgumentException("요청한 userId와 메모의 대상 사용자가 일치하지 않습니다.");
+        }
+
+        // 실제 삭제(하드 삭제)
+        adminNoteRepository.delete(note);
+
+        // 삭제 전 정보 반환(프론트에서 토스트/로그용으로 활용)
+        return new AdminMemoResponseDto(note);
+    }
+
+    @Transactional
+    public AdminMemoResponseDto updateMemoOfUser(Long targetUserId, Long memoId, String adminEmail, AdminMemoRequestDto dto) {
+        // 관리자 확인
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new IllegalArgumentException("관리자 계정을 찾을 수 없습니다."));
+        if (admin.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("메모를 수정할 권한이 없습니다.");
+        }
+
+        // 메모 조회
+        AdminNote note = adminNoteRepository.findById(memoId)
+                .orElseThrow(() -> new IllegalArgumentException("수정할 메모를 찾을 수 없습니다."));
+
+        // 대상 사용자 일치 검증
+        if (!note.getTargetUser().getId().equals(targetUserId)) {
+            throw new IllegalArgumentException("요청 userId와 메모의 대상 사용자가 일치하지 않습니다.");
+        }
+
+        // (선택) 본인 작성만 수정 허용하려면:
+        // if (!note.getAdmin().getId().equals(admin.getId())) {
+        //     throw new IllegalArgumentException("본인이 작성한 메모만 수정할 수 있습니다.");
+        // }
+
+        // 내용 수정
+        note.setContent(dto.getContent());
+        AdminNote saved = adminNoteRepository.save(note);
+
+        return new AdminMemoResponseDto(saved);
     }
 
 }
