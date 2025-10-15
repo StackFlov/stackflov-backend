@@ -16,6 +16,7 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
+    long countByUser_Id(Long userId);
     List<Comment> findByBoardId(Long boardId);
 
     Optional<Comment> findByIdAndActiveTrue(Long id);

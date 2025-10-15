@@ -14,12 +14,17 @@ public class AdminUserDto {
     private final boolean isActive;
     private final java.time.LocalDateTime createdAt;
 
-    public AdminUserDto(User user) {
+    private final long boardCount;
+    private final long commentCount;
+
+    public AdminUserDto(User user, long boardCount, long commentCount) {
         this.userId = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
         this.role = user.getRole();
         this.isActive = user.isActive();
         this.createdAt = user.getCreatedAt();
+        this.boardCount = boardCount;
+        this.commentCount = commentCount;
     }
 }

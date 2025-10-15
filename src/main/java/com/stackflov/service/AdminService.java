@@ -38,9 +38,13 @@ public class AdminService {
     public Page<AdminUserDto> getUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<User> users = userRepository.findAll(pageable);
-        return users.map(AdminUserDto::new);
-    }
 
+        return users.map(u -> {
+            long boards = boardRepository.countByAuthor_Id(u.getId());
+            long comments = commentRepository.countByUser_Id(u.getId());
+            return new AdminUserDto(u, boards, comments);
+        });
+    }
     // 사용자 역할 변경
     @Transactional
     public void updateUserRole(Long userId, RoleUpdateRequestDto dto, String adminEmail) {

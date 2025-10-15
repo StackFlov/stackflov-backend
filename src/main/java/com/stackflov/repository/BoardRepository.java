@@ -17,6 +17,7 @@ import java.util.Optional;
 public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecificationExecutor<Board> {
     // 활성화된 게시글만 ID로 조회
     Optional<Board> findByIdAndActiveTrue(Long id);
+    long countByAuthor_Id(Long authorId);
 
     // 활성화된 모든 게시글을 페이징하여 조회
     Page<Board> findAllByActiveTrue(Pageable pageable);
