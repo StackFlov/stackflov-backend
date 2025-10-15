@@ -189,7 +189,7 @@ public class AdminService {
                 reportedUser = b.getAuthor();
                 parentType = "BOARD";
                 parentBoardId = b.getId(); // 의미상 부모=자기 자신
-                contentUrl = "/boards/" + b.getId();
+                contentUrl = "/trace/detail/" + b.getId();
                 excerpt = cut(b.getContent(), 120);
             }
             case COMMENT -> {
