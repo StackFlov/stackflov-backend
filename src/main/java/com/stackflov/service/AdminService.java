@@ -201,7 +201,7 @@ public class AdminService {
                 if (c.getBoard() != null) {
                     parentType = "BOARD";
                     parentBoardId = c.getBoard().getId();
-                    contentUrl = "/boards/" + parentBoardId + "#comment-" + c.getId();
+                    contentUrl = "/trace/detail" + parentBoardId + "#comment-" + c.getId();
                 } else if (c.getReview() != null) {
                     parentType = "REVIEW";
                     parentReviewId = c.getReview().getId();
