@@ -24,7 +24,7 @@ public class ReportController {
             description = """
         콘텐츠(게시글/댓글/리뷰)를 신고합니다.
 
-        [contentType]
+        [reportType]
         - BOARD: 게시글
         - COMMENT: 댓글
         - REVIEW: 리뷰
@@ -38,7 +38,7 @@ public class ReportController {
 
         [필드 규칙]
         - contentId: 신고 대상의 ID (필수)
-        - contentType: BOARD | COMMENT | REVIEW (필수)
+        - reportType: BOARD | COMMENT | REVIEW (필수)
         - reason: SPAM | ABUSE | PORNOGRAPHY | ILLEGAL | OTHER (필수)
         - details: OTHER일 때만 필수, 그 외 사유는 선택
         """
