@@ -17,8 +17,18 @@ public class AdminReportDto {
     private final Long reportedUserId;
     private final String reportedUserNickname;
     private final int reportedUserReportCount;
+    private final Long parentBoardId;     // 댓글이 속한 게시글 ID (게시글 댓글)
+    private final Long parentReviewId;    // 댓글이 속한 리뷰 ID (리뷰 댓글)
+    private final String parentType;      // "BOARD" | "REVIEW" | null
+    private final String contentUrl;
+    private final String contentExcerpt;
 
-    public AdminReportDto(Report report, User reportedUser) {
+
+    public AdminReportDto(
+            Report report, User reportedUser,
+            Long parentBoardId, Long parentReviewId, String parentType,
+            String contentUrl, String contentExcerpt
+    ) {
         this.reportId = report.getId();
         this.contentId = report.getContentId();
         this.contentType = report.getContentType();
@@ -30,5 +40,11 @@ public class AdminReportDto {
         this.reportedUserId = reportedUser.getId();
         this.reportedUserNickname = reportedUser.getNickname();
         this.reportedUserReportCount = reportedUser.getReportCount();
+
+        this.parentBoardId = parentBoardId;
+        this.parentReviewId = parentReviewId;
+        this.parentType = parentType;
+        this.contentUrl = contentUrl;
+        this.contentExcerpt = contentExcerpt;
     }
 }

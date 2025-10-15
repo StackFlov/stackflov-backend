@@ -174,8 +174,68 @@ public class AdminService {
         return comments.map(AdminCommentDto::new); // 기존 AdminCommentDto 재사용
     }
     private AdminReportDto convertReportToAdminDto(Report report) {
-        User reportedUser = findReportedUser(report);
-        return new AdminReportDto(report, reportedUser);
+        // 공통
+        User reportedUser = findReportedUser(report); // 아래 switch에서 다시 덮어쓸 수도 있음
+        Long parentBoardId = null;
+        Long parentReviewId = null;
+        String parentType = null;
+        String contentUrl = null;
+        String excerpt = null;
+
+        switch (report.getContentType()) {
+            case BOARD -> {
+                Board b = boardRepository.findById(report.getContentId())
+                        .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                reportedUser = b.getAuthor();
+                parentType = "BOARD";
+                parentBoardId = b.getId(); // 의미상 부모=자기 자신
+                contentUrl = "/boards/" + b.getId();
+                excerpt = cut(b.getContent(), 120);
+            }
+            case COMMENT -> {
+                Comment c = commentRepository.findById(report.getContentId())
+                        .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                reportedUser = c.getUser();
+
+                // (선택) 부모 라우팅/딥링크까지 만들고 싶다면:
+                if (c.getBoard() != null) {
+                    parentType = "BOARD";
+                    parentBoardId = c.getBoard().getId();
+                    contentUrl = "/boards/" + parentBoardId + "#comment-" + c.getId();
+                } else if (c.getReview() != null) {
+                    parentType = "REVIEW";
+                    parentReviewId = c.getReview().getId();
+                    contentUrl = "/reviews/" + parentReviewId + "#comment-" + c.getId();
+                } else {
+                    throw new IllegalStateException("댓글의 부모(Board/Review)가 없습니다.");
+                }
+
+                excerpt = cut(c.getContent(), 120);
+            }
+            case REVIEW -> {
+                Review r = reviewRepository.findById(report.getContentId())
+                        .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+                reportedUser = r.getAuthor();
+                parentType = "REVIEW";
+                parentReviewId = r.getId(); // 의미상 부모=자기 자신
+                contentUrl = "/reviews/" + r.getId();
+                excerpt = cut(r.getContent(), 120);
+            }
+            default -> { /* no-op */ }
+        }
+
+        return new AdminReportDto(
+                report, reportedUser,
+                parentBoardId, parentReviewId, parentType,
+                contentUrl, excerpt
+        );
+    }
+
+    // 미리보기 120자 정도 잘라주는 유틸
+    private static String cut(String s, int len) {
+        if (s == null) return null;
+        s = s.strip();
+        return s.length() <= len ? s : s.substring(0, len) + "…";
     }
 
     private User findReportedUser(Report report) {
