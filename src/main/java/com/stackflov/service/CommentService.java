@@ -35,50 +35,55 @@ public class CommentService {
             throw new IllegalArgumentException("내용에 금지된 단어가 포함되어 있습니다.");
         }
 
+        // 둘 다/둘 다 아님 방지
+        if ((dto.getBoardId() == null && dto.getReviewId() == null) ||
+                (dto.getBoardId() != null && dto.getReviewId() != null)) {
+            throw new IllegalArgumentException("게시글 또는 리뷰 중 하나의 ID만 전달하세요.");
+        }
+
         Comment.CommentBuilder commentBuilder = Comment.builder()
                 .user(user)
                 .content(dto.getContent());
 
-        // 게시글에 대한 댓글 처리
         if (dto.getBoardId() != null) {
+            // 게시글 댓글
             Board board = boardRepository.findById(dto.getBoardId())
                     .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
             commentBuilder.board(board);
 
-            // 👇 게시글 작성자에게 알림을 보냅니다 (본인 제외)
             if (!board.getAuthor().getId().equals(user.getId())) {
                 notificationService.notify(
                         board.getAuthor(),
                         NotificationType.COMMENT,
                         user.getNickname() + "님이 회원님의 글에 댓글을 남겼습니다.",
-                        "/boards/" + board.getId()
-                );
-            }
-
-            // 리뷰에 대한 댓글 처리
-        } else if (dto.getReviewId() != null) {
-            Review review = reviewRepository.findById(dto.getReviewId())
-                    .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
-            commentBuilder.review(review);
-
-            // 👇 리뷰 작성자에게 알림을 보냅니다 (본인 제외)
-            if (!review.getAuthor().getId().equals(user.getId())) {
-                notificationService.notify(
-                        review.getAuthor(),
-                        NotificationType.COMMENT, // 또는 별도의 NotificationType.REVIEW_COMMENT를 만들어도 좋습니다.
-                        user.getNickname() + "님이 회원님의 리뷰에 댓글을 남겼습니다.",
-                        "/map/locations/" + review.getLocation().getId() // 리뷰가 달린 위치 페이지로 이동
+                        "/boards/" + board.getId()          // ✅ 그대로
                 );
             }
 
         } else {
-            throw new IllegalArgumentException("게시글 또는 리뷰 ID가 필요합니다.");
+            // 리뷰 댓글
+            Review review = reviewRepository.findByIdAndActiveTrue(dto.getReviewId())
+                    .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+            commentBuilder.review(review);
+
+            if (!review.getAuthor().getId().equals(user.getId())) {
+                notificationService.notify(
+                        review.getAuthor(),
+                        NotificationType.COMMENT,             // 원하면 REVIEW_COMMENT로 분리
+                        user.getNickname() + "님이 회원님의 리뷰에 댓글을 남겼습니다.",
+                        "/reviews/" + review.getId()          // ✅ Location 제거에 맞게 수정
+                        //  예: 프론트 라우트가 /map/reviews/:id 라면 여기를 맞춰주세요.
+                );
+            }
         }
 
         Comment comment = commentRepository.save(commentBuilder.build());
+
+        // mentionService 시그니처가 (board, review) 중 하나 null 허용인지 확인
         mentionService.processMentions(user, dto.getContent(), comment.getBoard(), comment);
         return comment.getId();
     }
+
 
     @Transactional
     public void updateComment(Long commentId, String content, String userEmail) {

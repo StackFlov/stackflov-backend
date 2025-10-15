@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,15 +24,15 @@ public class Review {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id", nullable = false)
-    private Location location;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
     @Column(nullable = false, length = 100)
     private String title;
+
+    // ✅ 주소를 직접 보관
+    @Column(length = 120)           // 필요 시 nullable=false 로
+    private String address;
 
     @Lob
     @Column(nullable = false)
@@ -48,7 +47,7 @@ public class Review {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Builder.Default // 👈 추가
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 
@@ -56,29 +55,27 @@ public class Review {
     private List<ReviewImage> reviewImages = new ArrayList<>();
 
     @Builder
-    public Review(Location location, User author, String title, String content, int rating) {
-        this.location = location;
+    public Review(User author, String title, String address, String content, int rating) {
         this.author = author;
         this.title = title;
+        this.address = address;
         this.content = content;
         this.rating = rating;
-
     }
+
     public void addReviewImage(ReviewImage reviewImage) {
         reviewImages.add(reviewImage);
-        reviewImage.setReview(this); // ReviewImage에서 review 필드를 설정하는 setter가 필요함
+        reviewImage.setReview(this);
     }
-    public void update(String title, String content, int rating) {
+
+    public void update(String title, String address, String content, int rating) {
         this.title = title;
+        this.address = address;
         this.content = content;
         this.rating = rating;
     }
 
-    public void deactivate() {
-        this.active = false;
-    }
+    public void deactivate() { this.active = false; }
 
-    public void activate() {
-        this.active = true;
-    }
+    public void activate() { this.active = true; }
 }

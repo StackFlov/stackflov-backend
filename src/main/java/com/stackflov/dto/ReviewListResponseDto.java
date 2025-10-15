@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @Builder
@@ -18,34 +17,33 @@ import java.util.Optional;
 @NoArgsConstructor
 public class ReviewListResponseDto {
     private Long id;
-    private Long locationId;
+    private String address;               // ✅ locationId → address
     private String authorNickname;
     private String content;
-    private Integer rating;           // 평점 필드명 맞춰서 변경
-    private Integer likeCount;        // 없으면 0
-    private Boolean mine;             // 요청자 == 작성자
+    private Integer rating;
+    private Integer likeCount;            // 없으면 0으로 세팅
+    private Boolean mine;                 // 요청자 == 작성자
     private LocalDateTime createdAt;
-    private List<String> imageUrls;   // 이미지가 있다면
+    private List<String> imageUrls;
 
-    public static ReviewListResponseDto from(Review r, @Nullable String requesterEmail) {
-        boolean mine = requesterEmail != null && r.getAuthor() != null
+    public static ReviewListResponseDto from(Review r, @org.springframework.lang.Nullable String requesterEmail) {
+        boolean mine = requesterEmail != null
+                && r.getAuthor() != null
                 && requesterEmail.equals(r.getAuthor().getEmail());
 
         return ReviewListResponseDto.builder()
                 .id(r.getId())
-                .locationId(r.getLocation().getId())
-                .authorNickname(r.getAuthor().getNickname())
+                .address(r.getAddress())                                  // ✅ 변경
+                .authorNickname(r.getAuthor() != null ? r.getAuthor().getNickname() : null)
                 .content(r.getContent())
                 .rating(r.getRating())
+                .likeCount(0)                                             // 👍 좋아요 집계 없으면 0
                 .mine(mine)
                 .createdAt(r.getCreatedAt())
-                .imageUrls(
-                        r.getReviewImages() == null ? List.of()
-                                : r.getReviewImages().stream()
-                                .map(ReviewImage::getImageUrl) // 필드명/접근자에 맞게 수정
-                                .toList()
-                )
+                .imageUrls(r.getReviewImages() == null ? List.of()
+                        : r.getReviewImages().stream()
+                        .map(ReviewImage::getImageUrl)
+                        .toList())
                 .build();
     }
 }
-

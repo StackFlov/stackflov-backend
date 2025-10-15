@@ -15,12 +15,12 @@ import org.springframework.data.domain.Pageable;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecificationExecutor<Review> { // 👈 상속 추가
-    List<Review> findByLocationId(Long locationId);
+public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecificationExecutor<Review> {
     Page<Review> findByAuthor(User author, Pageable pageable);
     @Query("SELECT FUNCTION('DATE', r.createdAt) as date, COUNT(r.id) as count FROM Review r WHERE r.createdAt >= :startDate GROUP BY date ORDER BY date")
     List<DailyStatProjection> countDailyReviews(@Param("startDate") LocalDateTime startDate);
     Optional<Review> findByIdAndActiveTrue(Long id);
     Page<Review> findByAuthorAndActiveTrue(User author, Pageable pageable);
     Page<Review> findByActiveTrue(Pageable pageable);
+    List<Review> findAllByActiveTrueOrderByIdDesc();
 }
