@@ -359,6 +359,7 @@ public class AdminService {
     public void deactivateReviewByAdmin(Long reviewId) {
         // 실제 로직은 MapService에 위임
         mapService.deactivateReviewByAdmin(reviewId);
+        commentRepository.bulkDeactivateByReviewId(reviewId);
     }
 
     @Transactional

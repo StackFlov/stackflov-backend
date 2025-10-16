@@ -34,10 +34,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByReviewIdAndActiveTrue(Long reviewId);
 
-    Page<Comment> findByUserAndBoardIsNotNull(User user, Pageable pageable);
-
-    Page<Comment> findByUserAndReviewIsNotNull(User user, Pageable pageable);
-
     @Modifying(clearAutomatically = true) // 벌크 연산 후 영속성 컨텍스트를 초기화
     @Query("UPDATE Comment c SET c.active = false WHERE c.id IN :ids")
     void bulkDeactivateByIds(@Param("ids") List<Long> ids);
@@ -50,4 +46,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT c FROM Comment c WHERE c.user = :user AND c.review IS NOT NULL AND c.active = true AND c.review.active = true")
     Page<Comment> findActiveByUserOnReviews(@Param("user") User user, Pageable pageable);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Comment c set c.active = false " +
+            "where c.review.id = :reviewId and c.active = true")
+    int bulkDeactivateByReviewId(@Param("reviewId") Long reviewId);
 }

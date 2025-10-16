@@ -78,6 +78,8 @@ public class MapService {
         }
 
         review.deactivate(); // 👈 delete -> deactivate 로 변경
+
+        commentRepository.bulkDeactivateByReviewId(reviewId);
     }
     @Transactional
     public void deactivateReviewByAdmin(Long reviewId) {

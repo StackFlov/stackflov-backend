@@ -102,7 +102,6 @@ public class CommentService {
         mentionService.processMentions(comment.getUser(), content, comment.getBoard(), comment);
     }
 
-    // ⬇ 소프트 삭제
     @Transactional
     public void deleteComment(Long commentId, String userEmail) {
         Comment comment = commentRepository.findByIdAndActiveTrue(commentId)
