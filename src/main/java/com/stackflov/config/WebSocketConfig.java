@@ -1,6 +1,6 @@
 package com.stackflov.config;
 
-import com.stackflov.jwt.StompHandler;
+import com.stackflov.websocket.StompHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;

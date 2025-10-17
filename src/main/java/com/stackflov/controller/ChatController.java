@@ -29,11 +29,15 @@ public class ChatController {
         """
     )
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDto message, Authentication authentication) {
+    public void message(@org.springframework.messaging.handler.annotation.Payload ChatMessageDto message,
+                        Authentication authentication) {
         String email = null;
-        if (authentication instanceof CustomUserPrincipal p) email = p.getEmail();
-        else if (authentication != null) email = authentication.getName();
-
+        Object principal = (authentication != null ? authentication.getPrincipal() : null);
+        if (principal instanceof CustomUserPrincipal p) {
+            email = p.getEmail();
+        } else if (authentication != null) {
+            email = authentication.getName();
+        }
         ChatMessageResponseDto saved = chatService.saveMessage(message, email);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), saved);
     }
