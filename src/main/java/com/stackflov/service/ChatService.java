@@ -12,11 +12,10 @@ import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.security.access.AccessDeniedException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,52 +27,60 @@ public class ChatService {
 
     @Transactional
     public Long createChatRoom(String userEmail, ChatRoomRequestDto requestDto) {
-        User currentUser = userRepository.findByEmail(userEmail)
+        User me = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        User targetUser = userRepository.findById(requestDto.getTargetUserId())
+        if (me.getId().equals(requestDto.getTargetUserId())) {
+            throw new IllegalArgumentException("본인과는 채팅방을 생성할 수 없습니다.");
+        }
+        User you = userRepository.findById(requestDto.getTargetUserId())
                 .orElseThrow(() -> new IllegalArgumentException("상대방 사용자를 찾을 수 없습니다."));
 
-        // 참고: 이미 두 사용자 간의 채팅방이 있는지 확인하는 로직을 추가하면 더 좋습니다.
+        return chatRoomRepository.findDirectRoomBetween(me.getId(), you.getId())
+                .map(ChatRoom::getId)
+                .orElseGet(() -> {
+                    ChatRoom newRoom = ChatRoom.builder()
+                            .participants(new java.util.HashSet<>(java.util.List.of(me, you)))
+                            .build();
+                    return chatRoomRepository.save(newRoom).getId();
+                });
+    }
 
-        Set<User> participants = new HashSet<>();
-        participants.add(currentUser);
-        participants.add(targetUser);
-
-        ChatRoom newRoom = ChatRoom.builder()
-                .participants(participants)
-                .build();
-
-        ChatRoom savedRoom = chatRoomRepository.save(newRoom);
-        return savedRoom.getId();
+    private boolean isParticipant(ChatRoom room, User user) {
+        Long uid = user.getId();
+        return room.getParticipants().stream().anyMatch(u -> u.getId().equals(uid));
     }
 
     @Transactional(readOnly = true)
-    public List<ChatMessageResponseDto> getMessages(Long roomId) {
-        // TODO: 현재 사용자가 이 채팅방에 참여하고 있는지 확인하는 권한 검사 로직 추가 필요
-
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomId(roomId);
-        return messages.stream()
-                .map(ChatMessageResponseDto::new)
-                .collect(Collectors.toList());
-    }
-    @Transactional
-    public void saveMessage(ChatMessageDto messageDto, String senderEmail) {
-        if (senderEmail == null) {
-               throw new IllegalArgumentException("인증되지 않은 사용자입니다.");
-        }
-        User sender = userRepository.findByEmail(senderEmail)
+    public List<ChatMessageResponseDto> getMessages(Long roomId, String requesterEmail) {
+        User requester = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        ChatRoom chatRoom = chatRoomRepository.findById(messageDto.getRoomId())
+        ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        ChatMessage chatMessage = ChatMessage.builder()
-                .chatRoom(chatRoom)
-                .sender(sender)
-                .content(messageDto.getMessage())
-                .build();
+        if (!isParticipant(room, requester)) {
+            throw new org.springframework.security.access.AccessDeniedException("채팅방 참가자만 열람할 수 있습니다.");
+        }
 
-        chatMessageRepository.save(chatMessage);
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(roomId);
+        return messages.stream().map(ChatMessageResponseDto::new).toList();
     }
 
+    @Transactional
+    public ChatMessageResponseDto saveMessage(ChatMessageDto dto, String senderEmail) {
+        if (senderEmail == null) throw new org.springframework.security.access.AccessDeniedException("인증되지 않은 사용자입니다.");
+
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        ChatRoom room = chatRoomRepository.findById(dto.getRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        if (!isParticipant(room, sender)) {
+            throw new org.springframework.security.access.AccessDeniedException("채팅방 참가자만 메시지를 보낼 수 있습니다.");
+        }
+
+        ChatMessage saved = chatMessageRepository.save(
+                ChatMessage.builder().chatRoom(room).sender(sender).content(dto.getMessage()).build()
+        );
+        return new ChatMessageResponseDto(saved);
+    }
 }

@@ -2,6 +2,7 @@ package com.stackflov.controller;
 
 import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.ChatMessageDto;
+import com.stackflov.dto.ChatMessageResponseDto;
 import com.stackflov.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,14 +30,11 @@ public class ChatController {
     )
     @MessageMapping("/chat/message")
     public void message(ChatMessageDto message, Authentication authentication) {
-        // 인증 사용자 이메일 추출
         String email = null;
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal p) {
-            email = p.getEmail();
-        } else if (authentication != null) {
-            email = authentication.getName(); // fallback
-        }
-        chatService.saveMessage(message, email);
-        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+        if (authentication instanceof CustomUserPrincipal p) email = p.getEmail();
+        else if (authentication != null) email = authentication.getName();
+
+        ChatMessageResponseDto saved = chatService.saveMessage(message, email);
+        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), saved);
     }
 }

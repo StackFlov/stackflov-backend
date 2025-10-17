@@ -37,4 +37,8 @@ public class CustomUserPrincipal implements UserDetails {
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return true; }
+
+    public static CustomUserPrincipal of(Long id, String email, Role role) {
+        return new CustomUserPrincipal(id, email, role); // 내부라서 private 생성자 호출 가능
+    }
 }

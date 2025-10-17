@@ -37,8 +37,10 @@ public class ChatRoomController {
             description = "roomId에 해당하는 채팅방의 메시지 목록을 조회합니다."
     )
     @GetMapping("/rooms/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponseDto>> getMessages(@PathVariable Long roomId) {
-        List<ChatMessageResponseDto> messages = chatService.getMessages(roomId);
+    public ResponseEntity<List<ChatMessageResponseDto>> getMessages(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+        List<ChatMessageResponseDto> messages = chatService.getMessages(roomId, principal.getEmail());
         return ResponseEntity.ok(messages);
     }
 }
