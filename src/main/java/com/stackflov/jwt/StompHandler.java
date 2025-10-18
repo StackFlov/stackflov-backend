@@ -1,3 +1,4 @@
+/*
 package com.stackflov.jwt;
 
 import com.stackflov.config.CustomUserPrincipal;
@@ -52,4 +53,4 @@ public class StompHandler implements ChannelInterceptor {
         }
         return message;
     }
-}
+}*/

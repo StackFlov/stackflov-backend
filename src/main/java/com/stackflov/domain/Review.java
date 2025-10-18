@@ -51,17 +51,9 @@ public class Review {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Builder.Default
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> reviewImages = new ArrayList<>();
-
-    @Builder
-    public Review(User author, String title, String address, String content, int rating) {
-        this.author = author;
-        this.title = title;
-        this.address = address;
-        this.content = content;
-        this.rating = rating;
-    }
 
     public void addReviewImage(ReviewImage reviewImage) {
         reviewImages.add(reviewImage);
