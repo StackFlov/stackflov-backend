@@ -23,10 +23,15 @@ public class ReviewListResponseDto {
     private Integer rating;
     private Integer likeCount;            // 없으면 0으로 세팅
     private Boolean mine;                 // 요청자 == 작성자
+    private Boolean isLike;
     private LocalDateTime createdAt;
     private List<String> imageUrls;
 
-    public static ReviewListResponseDto from(Review r, @org.springframework.lang.Nullable String requesterEmail) {
+    public static ReviewListResponseDto from(
+            Review r,
+            @org.springframework.lang.Nullable String requesterEmail,
+            boolean isLike,                // ✅ 추가 인자
+            int likeCount ) {
         boolean mine = requesterEmail != null
                 && r.getAuthor() != null
                 && requesterEmail.equals(r.getAuthor().getEmail());
@@ -37,8 +42,9 @@ public class ReviewListResponseDto {
                 .authorNickname(r.getAuthor() != null ? r.getAuthor().getNickname() : null)
                 .content(r.getContent())
                 .rating(r.getRating())
-                .likeCount(0)                                             // 👍 좋아요 집계 없으면 0
+                .likeCount(likeCount)                                             // 👍 좋아요 집계 없으면 0
                 .mine(mine)
+                .isLike(isLike)
                 .createdAt(r.getCreatedAt())
                 .imageUrls(r.getReviewImages() == null ? List.of()
                         : r.getReviewImages().stream()
