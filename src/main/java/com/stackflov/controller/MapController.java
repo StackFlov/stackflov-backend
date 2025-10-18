@@ -34,7 +34,7 @@ public class MapController {
             description = """
         - 인증: `Authorization: Bearer <accessToken>`
         - 요청 Content-Type: `multipart/form-data`  
-          - 한 요청 안에 **JSON 파트(`dto`)**와 **파일 파트(`images`)**를 함께 전송합니다.
+          - 한 요청 안에 **JSON 파트(`data`)**와 **파일 파트(`images`)**를 함께 전송합니다.
           """
     )
     @ApiResponses({
