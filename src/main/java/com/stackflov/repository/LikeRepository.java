@@ -2,6 +2,7 @@ package com.stackflov.repository;
 
 import com.stackflov.domain.Board;
 import com.stackflov.domain.Like;
+import com.stackflov.domain.Review;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,4 +23,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     boolean existsByUserAndBoardAndActiveTrue(User user, Board board);
 
     List<Like> findByBoard(Board board);
+
+    Optional<Like> findByUserAndReview(User user, Review review);
+    Optional<Like> findByUserAndReviewAndActiveTrue(User user, Review review);
 }
