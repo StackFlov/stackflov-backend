@@ -20,6 +20,7 @@ public class ReviewListResponseDto {
     private String title;
     private String address;               // ✅ locationId → address
     private String authorNickname;
+    private Long authorId;
     private String content;
     private Integer rating;
     private Integer likeCount;            // 없으면 0으로 세팅
@@ -42,6 +43,7 @@ public class ReviewListResponseDto {
                 .id(r.getId())
                 .address(r.getAddress())                                  // ✅ 변경
                 .authorNickname(r.getAuthor() != null ? r.getAuthor().getNickname() : null)
+                .authorId(r.getAuthor() != null ? r.getAuthor().getId() : null)
                 .content(r.getContent())
                 .rating(r.getRating())
                 .likeCount(likeCount)                                             // 👍 좋아요 집계 없으면 0
