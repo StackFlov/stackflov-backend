@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ReviewListResponseDto {
     private Long id;
+    private String title;
     private String address;               // ✅ locationId → address
     private String authorNickname;
     private String content;
@@ -37,6 +38,7 @@ public class ReviewListResponseDto {
                 && requesterEmail.equals(r.getAuthor().getEmail());
 
         return ReviewListResponseDto.builder()
+                .title(r.getTitle())
                 .id(r.getId())
                 .address(r.getAddress())                                  // ✅ 변경
                 .authorNickname(r.getAuthor() != null ? r.getAuthor().getNickname() : null)
