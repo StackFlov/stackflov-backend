@@ -33,6 +33,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         // 1) CONNECT에서 Authorization: Bearer xxx 읽기
         if (StompCommand.CONNECT.equals(acc.getCommand())) {
             String auth = acc.getFirstNativeHeader("Authorization"); // 대소문자 주의
+            log.debug("STOMP CONNECT Authorization header present? {}", (auth != null));
             if (auth == null || !auth.startsWith("Bearer ")) {
                 throw new AccessDeniedException("유효하지 않은 토큰입니다.(누락)");
             }
