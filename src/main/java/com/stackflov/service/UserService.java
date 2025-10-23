@@ -53,6 +53,7 @@ public class UserService {
             throw new IllegalArgumentException("이메일 인증이 필요합니다.");
         }
 
+
         // ✅ 중복 이메일 확인
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");

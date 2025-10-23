@@ -4,6 +4,9 @@ import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.ReportRequestDto;
 import com.stackflov.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +27,7 @@ public class ReportController {
             description = """
         콘텐츠(게시글/댓글/리뷰)를 신고합니다.
 
-        [reportType]
+        [contentType]
         - BOARD: 게시글
         - COMMENT: 댓글
         - REVIEW: 리뷰
@@ -38,10 +41,19 @@ public class ReportController {
 
         [필드 규칙]
         - contentId: 신고 대상의 ID (필수)
-        - reportType: BOARD | COMMENT | REVIEW (필수)
+        - contentType: BOARD | COMMENT | REVIEW (필수)
         - reason: SPAM | ABUSE | PORNOGRAPHY | ILLEGAL | OTHER (필수)
         - details: OTHER일 때만 필수, 그 외 사유는 선택
-        """
+        """,
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = ReportRequestDto.class))
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "신고 접수 완료"),
+                    @ApiResponse(responseCode = "400", description = "유효성 실패/권한 오류"),
+                    @ApiResponse(responseCode = "409", description = "중복 신고")
+            }
     )
     @PostMapping
     public ResponseEntity<String> createReport(
