@@ -1,6 +1,5 @@
 package com.stackflov.service;
 
-import com.amazonaws.services.kms.model.NotFoundException;
 import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
