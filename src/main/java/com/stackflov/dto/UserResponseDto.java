@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 public class UserResponseDto {
+    private final long id;
     private final String email;
     private final String nickname;
     private final String profileImage;
@@ -20,6 +21,7 @@ public class UserResponseDto {
     private final String address;
 
     public UserResponseDto(User user) {
+        this.id = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
         this.profileImage = user.getProfileImage();
