@@ -23,6 +23,7 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final S3Service s3Service;
 
     @Transactional
     public void follow(Long followerId, Long followedId) {
@@ -94,13 +95,25 @@ public class FollowService {
 
     public List<UserResponseDto> getFollowers(Long followedId) {
         return followRepository.findByFollowedIdAndActiveTrue(followedId).stream()
-                .map(f -> new UserResponseDto(f.getFollower()))
+                .map(follow -> {
+                    User followerUser = follow.getFollower(); // 2. User 객체 가져오기
+                    // 3. S3Service로 URL 변환
+                    String profileUrl = s3Service.publicUrl(followerUser.getProfileImage());
+                    // 4. 새 생성자로 DTO 생성
+                    return new UserResponseDto(followerUser, profileUrl);
+                })
                 .collect(Collectors.toList());
     }
 
     public List<UserResponseDto> getFollowing(Long followerId) {
         return followRepository.findByFollowerIdAndActiveTrue(followerId).stream()
-                .map(f -> new UserResponseDto(f.getFollowed()))
+                .map(follow -> {
+                    User followedUser = follow.getFollowed(); // 2. User 객체 가져오기
+                    // 3. S3Service로 URL 변환
+                    String profileUrl = s3Service.publicUrl(followedUser.getProfileImage());
+                    // 4. 새 생성자로 DTO 생성
+                    return new UserResponseDto(followedUser, profileUrl);
+                })
                 .collect(Collectors.toList());
     }
 

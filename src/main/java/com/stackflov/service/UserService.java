@@ -79,7 +79,8 @@ public class UserService {
     public UserResponseDto getUserByEmail(String email) {
         User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
-        return new UserResponseDto(user);
+        String fullProfileUrl = s3Service.publicUrl(user.getProfileImage());
+        return new UserResponseDto(user, fullProfileUrl);
     }
     @Transactional
     public void updateUser(String email, UserUpdateRequestDto dto) {

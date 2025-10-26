@@ -20,11 +20,11 @@ public class UserResponseDto {
     private final String phoneNumber;
     private final String address;
 
-    public UserResponseDto(User user) {
+    public UserResponseDto(User user, String profileImageUrl) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
-        this.profileImage = user.getProfileImage();
+        this.profileImage = profileImageUrl;
         this.socialType = user.getSocialType();
         this.level = user.getLevel();
         this.role = user.getRole();
