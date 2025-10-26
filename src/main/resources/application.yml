@@ -142,6 +142,8 @@ public-data:
     enabled: ${SEOUL_API_ENABLED:false}
 
 app:
+  cdn:
+    domain: d3sutbt651osyh.cloudfront.net
   defaults:
     profile-image: https://d3sutbt651osyh.cloudfront.net/assets/profile/default.png
 

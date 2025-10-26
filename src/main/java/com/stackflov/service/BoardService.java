@@ -4,6 +4,7 @@ import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,15 @@ public class BoardService {
     private final MentionService mentionService;
     private final HashtagService hashtagService;
 
+    @Value("${app.defaults.profile-image}")
+    private String defaultProfileImage;
+
     // ✅ 단일 게시글 조회
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
         Board board = boardRepository.findByIdAndActiveTrue(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없거나 삭제되었습니다."));
+
 
         board.increaseViewCount();
 
@@ -47,15 +52,10 @@ public class BoardService {
                 .map(img -> s3Service.publicUrl(img.getImageUrl())) // key → URL 변환
                 .collect(Collectors.toList());
 
-        String authorProfileImageUrl = null;
-        String raw = board.getAuthor().getProfileImage(); // DB에 저장된 값 (키 또는 이미 URL)
-        if (raw != null && !raw.isBlank()) {
-            authorProfileImageUrl = s3Service.publicUrl(raw);
-            // 캐시 무효화가 필요하면 버전 파라미터를 붙이세요 (선택)
-            // if (board.getAuthor().getUpdatedAt() != null) {
-            //     authorProfileImageUrl += "?v=" + board.getAuthor().getUpdatedAt().toEpochSecond(ZoneOffset.UTC);
-            // }
-        }
+        String raw = board.getAuthor().getProfileImage(); // DB: key or null
+        String authorProfileImageUrl = (raw == null || raw.isBlank())
+                ? defaultProfileImage                       // 기본 CDN 이미지
+                : s3Service.publicUrl(raw);
 
         return BoardResponseDto.builder()
                 .id(board.getId())

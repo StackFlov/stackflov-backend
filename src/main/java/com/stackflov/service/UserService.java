@@ -22,6 +22,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
+    private final S3Service s3Service;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -43,9 +44,10 @@ public class UserService {
     public void register(SignupRequestDto signupRequestDto) {
         String email = signupRequestDto.getEmail();
 
-        String profile = (signupRequestDto.getProfileImage() == null || signupRequestDto.getProfileImage().isBlank())
-                ? defaultProfileImage
-                : signupRequestDto.getProfileImage();
+        String input = signupRequestDto.getProfileImage();
+        String profileKey = (input == null || input.isBlank())
+                ? s3Service.extractKey(defaultProfileImage) // 👈 기본도 키로 저장
+                : s3Service.extractKey(input);
 /*
         // ✅ 이메일 인증 여부 확인
         String verified = redisService.get("EMAIL_VERIFIED:" + email);
@@ -64,7 +66,7 @@ public class UserService {
                 .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
                 .nickname(signupRequestDto.getNickname())
-                .profileImage(profile)              // ✅ 여기
+                .profileImage(profileKey)              // ✅ 여기
                 .socialType(SocialType.NONE)
                 .socialId(signupRequestDto.getSocialId())
                 .level(0)                           // 기본 고정
