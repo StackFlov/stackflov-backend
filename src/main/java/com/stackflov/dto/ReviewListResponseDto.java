@@ -32,8 +32,10 @@ public class ReviewListResponseDto {
     public static ReviewListResponseDto from(
             Review r,
             @org.springframework.lang.Nullable String requesterEmail,
-            boolean isLike,                // ✅ 추가 인자
-            int likeCount ) {
+            boolean isLike,
+            int likeCount,
+            List<String> imageUrls // ✅ 이 5번째 인자가 추가되어야 함
+    ) {
         boolean mine = requesterEmail != null
                 && r.getAuthor() != null
                 && requesterEmail.equals(r.getAuthor().getEmail());
@@ -50,10 +52,7 @@ public class ReviewListResponseDto {
                 .mine(mine)
                 .isLike(isLike)
                 .createdAt(r.getCreatedAt())
-                .imageUrls(r.getReviewImages() == null ? List.of()
-                        : r.getReviewImages().stream()
-                        .map(ReviewImage::getImageUrl)
-                        .toList())
+                .imageUrls(imageUrls)
                 .build();
     }
 }

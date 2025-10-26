@@ -3,7 +3,6 @@ package com.stackflov.service;
 import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
-import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -61,11 +60,17 @@ public class MapService {
         Page<Review> page = reviewRepository.findByActiveTrue(pageable);
 
         List<Review> reviews = page.getContent();
-        if (reviews.isEmpty()) return page.map(r -> ReviewListResponseDto.from(r, requesterEmail, false, 0));
+
+        // ✅ 1. Java 8 수정: List.of() -> Collections.emptyList()
+        if (reviews.isEmpty()) {
+            return page.map(r -> ReviewListResponseDto.from(
+                    r, requesterEmail, false, 0, Collections.emptyList() // 수정됨
+            ));
+        }
 
         List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
 
-        // 1) 좋아요 수 집계
+        // 1) 좋아요 수 집계 (...생략...)
         Map<Long, Integer> likeCountMap = likeRepository.countActiveLikesByReviewIds(reviewIds)
                 .stream()
                 .collect(Collectors.toMap(
@@ -74,29 +79,31 @@ public class MapService {
                 ));
 
         // 2) 내가 누른 리뷰 id 조회 (로그인 시에만)
-        Set<Long> likedSet = Collections.emptySet();
-        if (requesterEmail != null) {
-            userRepository.findByEmail(requesterEmail).ifPresent(user -> {
-                List<Long> likedIds = likeRepository.findLikedReviewIds(user.getId(), reviewIds);
-                // capture를 위해 로컬 최종 변수 사용 대신 배열/holder 쓰거나 아래처럼 처리
-                // 외부 변수 재할당 피하려면 람다 밖에서 처리:
-            });
-            // 람다 캡처 깔끔 버전:
-            List<Long> likedIds = userRepository.findByEmail(requesterEmail)
-                    .map(u -> likeRepository.findLikedReviewIds(u.getId(), reviewIds))
-                    .orElseGet(List::of);
-            likedSet = new HashSet<>(likedIds);
-        }
+        // ✅ 2. Java 8 수정: List.of -> Collections::emptyList
+        List<Long> likedIds = userRepository.findByEmail(requesterEmail)
+                .map(u -> likeRepository.findLikedReviewIds(u.getId(), reviewIds))
+                .orElseGet(Collections::emptyList); // 수정됨
+
+        Set<Long> likedSet = new HashSet<>(likedIds);
 
         final Map<Long, Integer> likeCountMapFinal = likeCountMap;
         final Set<Long> likedSetFinal = likedSet;
 
-        return page.map(r -> ReviewListResponseDto.from(
-                r,
-                requesterEmail,
-                likedSetFinal.contains(r.getId()),                     // liked
-                likeCountMapFinal.getOrDefault(r.getId(), 0)           // likeCount
-        ));
+        return page.map(r -> {
+            // ✅ 3. Java 8 수정: List.of() -> Collections.emptyList()
+            List<String> imageUrls = r.getReviewImages() == null ? Collections.emptyList() // 수정됨
+                    : r.getReviewImages().stream()
+                    .map(img -> s3Service.publicUrl(img.getImageUrl()))
+                    .toList();
+
+            return ReviewListResponseDto.from(
+                    r,
+                    requesterEmail,
+                    likedSetFinal.contains(r.getId()),
+                    likeCountMapFinal.getOrDefault(r.getId(), 0),
+                    imageUrls
+            );
+        });
     }
     @Transactional
     public void updateReview(Long reviewId, ReviewRequestDto dto, String userEmail) {
