@@ -47,6 +47,16 @@ public class BoardService {
                 .map(img -> s3Service.publicUrl(img.getImageUrl())) // key → URL 변환
                 .collect(Collectors.toList());
 
+        String authorProfileImageUrl = null;
+        String raw = board.getAuthor().getProfileImage(); // DB에 저장된 값 (키 또는 이미 URL)
+        if (raw != null && !raw.isBlank()) {
+            authorProfileImageUrl = s3Service.publicUrl(raw);
+            // 캐시 무효화가 필요하면 버전 파라미터를 붙이세요 (선택)
+            // if (board.getAuthor().getUpdatedAt() != null) {
+            //     authorProfileImageUrl += "?v=" + board.getAuthor().getUpdatedAt().toEpochSecond(ZoneOffset.UTC);
+            // }
+        }
+
         return BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -61,6 +71,7 @@ public class BoardService {
                 .updatedAt(board.getUpdatedAt())
                 .likeCount(likeRepository.countByBoardAndActiveTrue(board))
                 .isLiked(isLiked)
+                .authorProfileImageUrl(authorProfileImageUrl)
                 .build();
     }
 

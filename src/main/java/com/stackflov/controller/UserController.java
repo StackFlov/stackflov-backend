@@ -25,7 +25,7 @@ public class UserController {
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserPrincipal principal) {
         UserResponseDto dto = userService.getUserByEmail(principal.getEmail());
         return ResponseEntity.ok(dto);
-        }
+    }
 
     @Operation(summary = "내 정보 수정", description = "현재 로그인한 사용자의 프로필 정보를 수정합니다.")
     @PutMapping("/me")
