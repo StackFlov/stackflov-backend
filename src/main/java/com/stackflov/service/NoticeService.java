@@ -69,6 +69,6 @@ public class NoticeService {
     @Transactional(readOnly = true)
     public Page<NoticeResponseDto> getAllNotices(Pageable pageable) {
         Page<Notice> notices = noticeRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return notices.map(n -> new NoticeResponseDto(n.getId(), n.getTitle(), n.getAuthor().getNickname(), n.getViewCount(), n.getCreatedAt()));
+        return notices.map(n -> new NoticeResponseDto(n.getId(), n.getTitle(), n.getAuthor().getNickname(), n.getViewCount(), n.getCreatedAt(), n.isActive()));
     }
 }

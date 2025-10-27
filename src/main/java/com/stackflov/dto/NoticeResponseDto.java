@@ -14,6 +14,7 @@ public class NoticeResponseDto {
     private final int viewCount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final boolean active;
 
     // 상세 조회용 생성자
     public NoticeResponseDto(Notice notice) {
@@ -24,12 +25,14 @@ public class NoticeResponseDto {
         this.viewCount = notice.getViewCount();
         this.createdAt = notice.getCreatedAt();
         this.updatedAt = notice.getUpdatedAt();
+        this.active = notice.isActive();
     }
 
     // 목록 조회용 생성자 (content 제외)
-    public NoticeResponseDto(Long id, String title, String authorNickname, int viewCount, LocalDateTime createdAt) {
+    public NoticeResponseDto(Long id, String title, String authorNickname, int viewCount, LocalDateTime createdAt, boolean active) {
         this.id = id;
         this.title = title;
+        this.active = active;
         this.content = null; // 목록에서는 내용 제외
         this.authorNickname = authorNickname;
         this.viewCount = viewCount;
