@@ -174,8 +174,8 @@ public class MapService {
                 .map(ReviewImage::getImageUrl)
                 .filter(Objects::nonNull)
                 .filter(s -> !s.isBlank())
-                .map(s3Service::publicUrl) // ← Board와 동일하게 CDN URL 변환
-                .collect(Collectors.toList());
+                .map(this::toPublicUrl)      // ✅ 보정 + CDN URL
+                .toList();
 
         long likeCount = likeRepository.countByReviewAndActiveTrue(review);
         boolean isLiked = (email != null) && userRepository.findByEmail(email)
@@ -199,4 +199,16 @@ public class MapService {
                 .updatedAt(review.getUpdatedAt())
                 .build();
     }
+
+    private String normalizeKey(String keyOrUrl) {
+        String k = s3Service.extractKey(keyOrUrl);   // URL이면 path만, key면 그대로
+        if (k.startsWith("review/"))  k = "images/" + k.substring("review/".length());
+        if (k.startsWith("reviews/")) k = "images/" + k.substring("reviews/".length());
+        return k.replaceFirst("^/+", "");
+    }
+
+    private String toPublicUrl(String keyOrUrl) {
+        return s3Service.publicUrl(normalizeKey(keyOrUrl));
+    }
+
 }
