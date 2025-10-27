@@ -85,8 +85,8 @@ spring:
             user-name-attribute: response
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 40MB
+      max-file-size: 1GB
+      max-request-size: 1GB
 
 kakao:
   javascript:

@@ -5,7 +5,6 @@ import com.stackflov.dto.LikeRequestDto;
 import com.stackflov.repository.BoardRepository;
 import com.stackflov.repository.LikeRepository;
 import com.stackflov.repository.ReviewRepository;
-import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
