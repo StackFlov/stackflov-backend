@@ -50,7 +50,7 @@ public class MapService {
 
         if (images != null && !images.isEmpty()) {
             for (MultipartFile image : images) {
-                String imageUrl = s3Service.upload(image, "reviews");
+                String imageUrl = s3Service.upload(image, "images");
                 ReviewImage reviewImage = ReviewImage.builder()
                         .review(savedReview)
                         .imageUrl(imageUrl)
