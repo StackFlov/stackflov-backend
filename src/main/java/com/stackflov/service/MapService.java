@@ -4,6 +4,7 @@ import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +24,11 @@ public class MapService {
     private final S3Service s3Service;
     private final CommentRepository commentRepository;
     private final UserService userService;
-    private final LikeRepository likeRepository;   // ✅
+    private final LikeRepository likeRepository;
     private final UserRepository userRepository;
+
+    @Value("${app.defaults.profile-image}")
+    private String defaultProfileImage;
 
     // 특정 위치에 리뷰 작성
     @Transactional
@@ -55,7 +59,7 @@ public class MapService {
     }
 
 
-    public Page<ReviewListResponseDto> getReview(Pageable pageable,
+    public Page<ReviewListResponseDto> getReviews(Pageable pageable,
                                                  @org.springframework.lang.Nullable String requesterEmail) {
         Page<Review> page = reviewRepository.findByActiveTrue(pageable);
 
@@ -149,5 +153,59 @@ public class MapService {
                 r.getRating(),
                 r.getCreatedAt().toLocalDate()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewDetailResponseDto getReviewDetail(Long reviewId, String email) {
+        Review review = reviewRepository.findByIdAndActiveTrue(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰가 없거나 비활성화되었습니다."));
+
+        // 작성자 프로필 이미지
+        String rawProfile = review.getAuthor().getProfileImage();
+        String authorProfileImageUrl = (rawProfile == null || rawProfile.trim().isEmpty())
+                ? defaultProfileImage
+                : s3Service.publicUrl(rawProfile);
+
+        // 리뷰 이미지 URL 리스트 (정렬: sortOrder 가 있을 때 / 없으면 id 로)
+        List<String> imageUrls = review.getReviewImages().stream()
+                .map(ReviewImage::getImageUrl)
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .map(this::toPublicUrl)              // key면 CDN URL로 변환
+                .toList();         // ✅ JDK 8/11 호환
+
+        long likeCount = likeRepository.countByReviewAndActiveTrue(review);
+        boolean isLiked = false;
+        if (email != null) {
+            userRepository.findByEmail(email).ifPresent(u -> {
+                // 필요 시 필드에 담거나, 로컬 변수 사용은 람다에서 불가하니 아래처럼 한 번 더 조회
+            });
+            isLiked = userRepository.findByEmail(email)
+                    .map(u -> likeRepository.findByUserAndReviewAndActiveTrue(u, review).isPresent())
+                    .orElse(false);
+        }
+
+        return ReviewDetailResponseDto.builder()
+                .id(review.getId())
+                .title(review.getTitle())
+                .content(review.getContent())
+                .address(review.getAddress())
+                .rating(review.getRating())
+                .authorId(review.getAuthor().getId())
+                .authorEmail(review.getAuthor().getEmail())
+                .authorNickname(review.getAuthor().getNickname())
+                .authorProfileImageUrl(authorProfileImageUrl)
+                .imageUrls(imageUrls)
+                .likeCount(likeCount)
+                .isLiked(isLiked)
+                .createdAt(review.getCreatedAt())
+                .updatedAt(review.getUpdatedAt())
+                .build();
+    }
+
+
+    private String toPublicUrl(String raw) {
+        // 이미 절대 URL이면 그대로, S3 key면 CDN URL로
+        return raw.startsWith("http") ? raw : s3Service.publicUrl(raw);
     }
 }

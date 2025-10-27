@@ -4,7 +4,7 @@ import com.stackflov.domain.Board;
 import com.stackflov.domain.Like;
 import com.stackflov.domain.Review;
 import com.stackflov.domain.User;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -52,4 +52,5 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
            group by l.review.id
            """)
     List<ReviewLikeCount> countActiveLikesByReviewIds(@Param("reviewIds") List<Long> reviewIds);
+    long countByReviewAndActiveTrue(Review review);
 }

@@ -133,7 +133,20 @@ public class MapController {
             @AuthenticationPrincipal @Nullable CustomUserPrincipal principal
     ) {
         String email = principal == null ? null : principal.getEmail();
-        Page<ReviewListResponseDto> reviews = mapService.getReview(pageable, email);
+        Page<ReviewListResponseDto> reviews = mapService.getReviews(pageable, email);
         return ResponseEntity.ok(reviews);
+    }
+    @Operation(summary = "리뷰 상세 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "리뷰 없음")
+    })
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ReviewDetailResponseDto> getReviewDetail(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal @Nullable CustomUserPrincipal principal
+    ) {
+        String email = (principal == null) ? null : principal.getEmail();
+        return ResponseEntity.ok(mapService.getReviewDetail(reviewId, email));
     }
 }
