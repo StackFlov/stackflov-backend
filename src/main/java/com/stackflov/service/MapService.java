@@ -163,30 +163,24 @@ public class MapService {
         Review review = reviewRepository.findByIdAndActiveTrue(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 없거나 비활성화되었습니다."));
 
-        // 작성자 프로필 이미지
+        // 작성자 프로필
         String rawProfile = review.getAuthor().getProfileImage();
-        String authorProfileImageUrl = (rawProfile == null || rawProfile.trim().isEmpty())
+        String authorProfileImageUrl = (rawProfile == null || rawProfile.isBlank())
                 ? defaultProfileImage
                 : s3Service.publicUrl(rawProfile);
 
-        // 리뷰 이미지 URL 리스트 (정렬: sortOrder 가 있을 때 / 없으면 id 로)
+        // 리뷰 이미지들
         List<String> imageUrls = review.getReviewImages().stream()
                 .map(ReviewImage::getImageUrl)
                 .filter(Objects::nonNull)
                 .filter(s -> !s.isBlank())
-                .map(this::toPublicUrl)              // key면 CDN URL로 변환
-                .toList();         // ✅ JDK 8/11 호환
+                .map(s3Service::publicUrl) // ← Board와 동일하게 CDN URL 변환
+                .collect(Collectors.toList());
 
         long likeCount = likeRepository.countByReviewAndActiveTrue(review);
-        boolean isLiked = false;
-        if (email != null) {
-            userRepository.findByEmail(email).ifPresent(u -> {
-                // 필요 시 필드에 담거나, 로컬 변수 사용은 람다에서 불가하니 아래처럼 한 번 더 조회
-            });
-            isLiked = userRepository.findByEmail(email)
-                    .map(u -> likeRepository.findByUserAndReviewAndActiveTrue(u, review).isPresent())
-                    .orElse(false);
-        }
+        boolean isLiked = (email != null) && userRepository.findByEmail(email)
+                .map(u -> likeRepository.findByUserAndReviewAndActiveTrue(u, review).isPresent())
+                .orElse(false);
 
         return ReviewDetailResponseDto.builder()
                 .id(review.getId())
@@ -204,15 +198,5 @@ public class MapService {
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();
-    }
-
-
-    private String toPublicUrl(String keyOrUrl) {
-        if (keyOrUrl == null || keyOrUrl.isBlank()) return "";
-        if (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://")) {
-            return keyOrUrl; // 이미 절대 URL
-        }
-        // S3 key → CDN URL
-        return "https://" + cdnDomain + "/" + keyOrUrl.replaceFirst("^/+", "");
     }
 }
