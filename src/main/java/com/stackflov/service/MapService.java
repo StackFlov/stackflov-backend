@@ -30,6 +30,9 @@ public class MapService {
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
 
+    @Value("${app.cdn.domain}")   // 예: d3sutbt651osyh.cloudfront.net
+    private String cdnDomain;
+
     // 특정 위치에 리뷰 작성
     @Transactional
     public Long createReview(ReviewRequestDto dto, String userEmail, List<MultipartFile> images) {
@@ -204,8 +207,12 @@ public class MapService {
     }
 
 
-    private String toPublicUrl(String raw) {
-        // 이미 절대 URL이면 그대로, S3 key면 CDN URL로
-        return raw.startsWith("http") ? raw : s3Service.publicUrl(raw);
+    private String toPublicUrl(String keyOrUrl) {
+        if (keyOrUrl == null || keyOrUrl.isBlank()) return "";
+        if (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://")) {
+            return keyOrUrl; // 이미 절대 URL
+        }
+        // S3 key → CDN URL
+        return "https://" + cdnDomain + "/" + keyOrUrl.replaceFirst("^/+", "");
     }
 }
