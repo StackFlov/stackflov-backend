@@ -154,12 +154,24 @@ spring:
     activate:
       on-profile: dev
 
+app:
+  front-callback: http://localhost:3000/auth/callback?ok=1
+  cookie-domain: ""         # 로컬은 도메인 미설정
+  cookie-samesite: Lax      # http라서 Lax
+  cookie-secure: false
+
 ---
 # 'prod' 프로필이 활성화됐을 때만 적용될 설정을 정의합니다.
 spring:
   config:
     activate:
       on-profile: prod
+
+app:
+  front-callback: https://app.stackflov.com/auth/callback?ok=1
+  cookie-domain: .stackflov.com
+  cookie-samesite: None     # 크로스사이트 쿠키 허용
+  cookie-secure: true       # HTTPS 필수
 springdoc:
   swagger-ui:
     enabled: true
