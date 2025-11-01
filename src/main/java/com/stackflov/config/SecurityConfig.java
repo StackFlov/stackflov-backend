@@ -96,6 +96,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/users/password").authenticated()
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
+                        .requestMatchers("/auth/me").authenticated()
 
                         // Comments
                         .requestMatchers(HttpMethod.POST, "/comments").authenticated()

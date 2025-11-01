@@ -68,7 +68,10 @@ public class NoticeService {
     // 사용자/관리자: 공지사항 목록 조회
     @Transactional(readOnly = true)
     public Page<NoticeResponseDto> getAllNotices(Pageable pageable) {
-        Page<Notice> notices = noticeRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return notices.map(n -> new NoticeResponseDto(n.getId(), n.getTitle(), n.getAuthor().getNickname(), n.getViewCount(), n.getCreatedAt(), n.isActive()));
+        Page<Notice> notices = noticeRepository.findByActiveTrueOrderByCreatedAtDesc(pageable);
+        return notices.map(n -> new NoticeResponseDto(
+                n.getId(), n.getTitle(), n.getAuthor().getNickname(),
+                n.getViewCount(), n.getCreatedAt(), n.isActive()
+        ));
     }
 }

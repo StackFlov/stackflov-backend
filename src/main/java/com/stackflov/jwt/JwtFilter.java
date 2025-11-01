@@ -3,6 +3,7 @@ package com.stackflov.jwt;
 import com.stackflov.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +55,25 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        // 1) Authorization: Bearer <token>
+        String h = request.getHeader("Authorization");
+        if (h != null && h.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String v = h.substring(7).trim();
+            if (StringUtils.hasText(v)) return v;
         }
-        return null;
+
+        // 2) Cookie: ACCESS_TOKEN
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if ("ACCESS_TOKEN".equals(c.getName()) && StringUtils.hasText(c.getValue())) {
+                    return c.getValue();
+                }
+            }
+        }
+
+        // 3) (옵션) 개발 편의용: /?access_token=...
+        String qp = request.getParameter("access_token");
+        return StringUtils.hasText(qp) ? qp : null;
     }
 }
