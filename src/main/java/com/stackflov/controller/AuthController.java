@@ -37,8 +37,15 @@ public class AuthController {
     private final EmailService emailService;
     private final SmsService smsService;
 
-    @Value("${app.frontend.callback:http://localhost:3000/auth/callback?ok=1}")
+    @Value("${app.frontend.callback:http://localhost:3000}")
     private String frontendCallback;
+
+    @Value("${app.cookie-samesite:Lax}")  // dev=Lax, prod=None
+    private String cookieSameSite;
+    @Value("${app.cookie-secure:false}")  // dev=false, prod=true
+    private boolean cookieSecure;
+    @Value("${app.cookie-domain:}")
+    private String cookieDomain;
 
     @GetMapping("/callback")
     public ResponseEntity<Void> callback() {
@@ -111,17 +118,41 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserPrincipal principal,
                                        HttpServletResponse res) {
-        if (principal != null) authService.logout(principal.getEmail()); // Redis RT 제거 등
+        if (principal != null) authService.logout(principal.getEmail()); // Redis RT 제거
 
-        ResponseCookie dead1 = ResponseCookie.from("ACCESS_TOKEN", "")
-                .httpOnly(true).secure(true).sameSite("None")
-                .domain(".stackflov.com").path("/").maxAge(0).build();
-        ResponseCookie dead2 = ResponseCookie.from("REFRESH_TOKEN", "")
-                .httpOnly(true).secure(true).sameSite("None")
-                .domain(".stackflov.com").path("/").maxAge(0).build();
-        res.addHeader("Set-Cookie", dead1.toString());
-        res.addHeader("Set-Cookie", dead2.toString());
+        // ✅ 실제/과거 이름 전부 제거
+        killCookie(res, "accessToken");
+        killCookie(res, "refreshToken");
+        killCookie(res, "ACCESS_TOKEN");   // 과거 이름
+        killCookie(res, "REFRESH_TOKEN");  // 과거 이름
+
         return ResponseEntity.noContent().build();
+    }
+
+    /** host-only + domain 쿠키 모두 만료해서 안전하게 삭제 */
+    private void killCookie(HttpServletResponse res, String name) {
+        // 1) host-only 쿠키 삭제
+        ResponseCookie c1 = ResponseCookie.from(name, "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(false)          // 삭제에는 영향 없음
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .build();
+        res.addHeader("Set-Cookie", c1.toString());
+
+        // 2) domain 지정 쿠키 삭제(있을 때만)
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            ResponseCookie c2 = ResponseCookie.from(name, "")
+                    .domain(cookieDomain)
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(false)
+                    .secure(cookieSecure)
+                    .sameSite(cookieSameSite)
+                    .build();
+            res.addHeader("Set-Cookie", c2.toString());
+        }
     }
 
     @Operation(summary = "이메일 인증코드 전송", description = "입력한 이메일로 인증 코드를 발송합니다.")
