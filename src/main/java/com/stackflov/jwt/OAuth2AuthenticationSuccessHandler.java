@@ -39,20 +39,38 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         redisService.save("RT:" + p.getEmail(), refresh, jwtProvider.REFRESH_TOKEN_EXPIRE_TIME);
 
         ResponseCookie acc = ResponseCookie.from("accessToken", access)
-                .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
+                .httpOnly(false)                // ← 여기 true → false
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
                 .maxAge(15 * 60).build();
+
         ResponseCookie ref = ResponseCookie.from("refreshToken", refresh)
-                .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
+                .httpOnly(false)                // ← 여기 true → false
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
                 .maxAge(14L * 24 * 60 * 60).build();
 
         // 필요 시만 설정 (로컬은 설정하지 않음)
         if (!cookieDomain.isBlank()) {
             acc = ResponseCookie.from(acc.getName(), acc.getValue())
-                    .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
-                    .domain(cookieDomain).maxAge(acc.getMaxAge().getSeconds()).build();
+                    .httpOnly(false)            // ← 여기서도 false로!
+                    .secure(cookieSecure)
+                    .sameSite(cookieSameSite)
+                    .path("/")
+                    .domain(cookieDomain)
+                    .maxAge(acc.getMaxAge().getSeconds())
+                    .build();
+
             ref = ResponseCookie.from(ref.getName(), ref.getValue())
-                    .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
-                    .domain(cookieDomain).maxAge(ref.getMaxAge().getSeconds()).build();
+                    .httpOnly(false)            // ← 여기서도 false로!
+                    .secure(cookieSecure)
+                    .sameSite(cookieSameSite)
+                    .path("/")
+                    .domain(cookieDomain)
+                    .maxAge(ref.getMaxAge().getSeconds())
+                    .build();
         }
 
         res.addHeader("Set-Cookie", acc.toString());
