@@ -38,10 +38,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String refresh = jwtProvider.createRefreshToken(p.getEmail());
         redisService.save("RT:" + p.getEmail(), refresh, jwtProvider.REFRESH_TOKEN_EXPIRE_TIME);
 
-        ResponseCookie acc = ResponseCookie.from("ACCESS_TOKEN", access)
+        ResponseCookie acc = ResponseCookie.from("accessToken", access)
                 .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
                 .maxAge(15 * 60).build();
-        ResponseCookie ref = ResponseCookie.from("REFRESH_TOKEN", refresh)
+        ResponseCookie ref = ResponseCookie.from("refreshToken", refresh)
                 .httpOnly(true).secure(cookieSecure).sameSite(cookieSameSite).path("/")
                 .maxAge(14L * 24 * 60 * 60).build();
 
