@@ -155,7 +155,7 @@ spring:
       on-profile: dev
 
 app:
-  front-callback: http://localhost:3000/auth/callback?ok=1
+  front-callback: http://localhost:3000
   cookie-domain: ""         # 로컬은 도메인 미설정
   cookie-samesite: Lax      # http라서 Lax
   cookie-secure: false
@@ -168,7 +168,7 @@ spring:
       on-profile: prod
 
 app:
-  front-callback: https://app.stackflov.com/auth/callback?ok=1
+  front-callback: https://app.stackflov.com
   cookie-domain: .stackflov.com
   cookie-samesite: None     # 크로스사이트 쿠키 허용
   cookie-secure: true       # HTTPS 필수
