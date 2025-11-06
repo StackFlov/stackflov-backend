@@ -1,5 +1,5 @@
 # 베이스 이미지: Java 21 환경
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # JAR 파일 복사: 빌드된 .jar 파일을 컨테이너 안으로 복사
