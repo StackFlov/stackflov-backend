@@ -86,11 +86,11 @@ public class MapController {
     @PutMapping(value = "/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateReview(
             @PathVariable("reviewId") Long reviewId,
-            @RequestPart("data") ReviewRequestDto dto,              // ← key 이름 일치
+            @RequestPart("data") ReviewUpdateRequestDto dto,              // ← key 이름 일치
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        mapService.updateReview(reviewId, dto, principal.getEmail());
+        mapService.updateReview(reviewId, dto, images, principal.getEmail());
         return ResponseEntity.ok().build();
     }
 

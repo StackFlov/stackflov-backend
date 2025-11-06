@@ -26,6 +26,7 @@ public class MapService {
     private final UserService userService;
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
+    private final ReviewImageRepository reviewImageRepository;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -113,15 +114,59 @@ public class MapService {
         });
     }
     @Transactional
-    public void updateReview(Long reviewId, ReviewRequestDto dto, String userEmail) {
+    public void updateReview(Long reviewId,
+                             ReviewUpdateRequestDto dto,
+                             List<MultipartFile> images,
+                             String userEmail) {
+
+        // 1) 대상 리뷰 + 권한 확인
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
-
-        if (!review.getAuthor().getEmail().equals(userEmail)) {
+        if (review.getAuthor() == null
+                || review.getAuthor().getEmail() == null
+                || !review.getAuthor().getEmail().equalsIgnoreCase(userEmail)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        review.update(dto.getTitle(), dto.getAddress(), dto.getContent(), dto.getRating());
+        // 2) 스칼라 필드: null이 아닐 때만 반영 (부분수정)
+        if (dto.getTitle()   != null) review.setTitle(dto.getTitle());
+        if (dto.getAddress() != null) review.setAddress(dto.getAddress());
+        if (dto.getContent() != null) review.setContent(dto.getContent());
+        if (dto.getRating()  != null) {
+            int clamped = Math.max(1, Math.min(5, dto.getRating()));
+            review.setRating(clamped);
+        }
+
+        // 3) 이미지 삭제/전면 교체
+        if (Boolean.TRUE.equals(dto.getReplaceAll())) {
+            // 전면 교체: 기존 전부 삭제
+            List<ReviewImage> all = reviewImageRepository.findAllByReviewId(reviewId);
+            for (ReviewImage img : all) {
+                s3Service.deleteByKey(img.getImageUrl());      // URL이어도 내부에서 key 추출해 삭제됨
+                reviewImageRepository.delete(img);
+            }
+        } else if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
+            // 일부 삭제: 해당 리뷰의 것만 안전하게 조회 후 삭제
+            List<ReviewImage> toDelete =
+                    reviewImageRepository.findAllByIdInAndReviewId(dto.getDeleteImageIds(), reviewId);
+            for (ReviewImage img : toDelete) {
+                s3Service.deleteByKey(img.getImageUrl());
+                reviewImageRepository.delete(img);
+            }
+        }
+
+        // 4) 새 이미지 추가
+        if (images != null && !images.isEmpty()) {
+            long order = reviewImageRepository.countByReviewId(reviewId);
+            for (MultipartFile file : images) {
+                if (file == null || file.isEmpty()) continue;
+                String key = s3Service.upload(file, "images/"); // S3 key
+                String url = s3Service.publicUrl(key);                      // CDN 도메인 우선
+                reviewImageRepository.save(new ReviewImage(review, url)); // 엔티티에 맞게
+            }
+        }
+
+        // JPA dirty checking으로 커밋 시 반영
     }
     @Transactional
     public void deleteReview(Long reviewId, String userEmail) {
