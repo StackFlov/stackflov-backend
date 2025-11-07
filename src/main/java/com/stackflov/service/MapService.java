@@ -173,13 +173,35 @@ public class MapService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
 
-        if (!review.getAuthor().getEmail().equals(userEmail)) {
+        if (review.getAuthor() == null
+                || review.getAuthor().getEmail() == null
+                || !review.getAuthor().getEmail().equalsIgnoreCase(userEmail)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
-        review.deactivate(); // 👈 delete -> deactivate 로 변경
+        // 1) 리뷰에 연결된 이미지들 먼저 조회(추후 S3 삭제용)
+        List<ReviewImage> images = reviewImageRepository.findAllByReviewId(reviewId);
 
+        // 2) 리뷰/댓글 소프트 삭제
+        review.deactivate();
         commentRepository.bulkDeactivateByReviewId(reviewId);
+
+        // 3) S3에서 원본 삭제 (CDN URL이든 key든 deleteByKey가 알아서 key 추출)
+        for (ReviewImage img : images) {
+            String url = img.getImageUrl();
+            if (url != null && !url.isBlank()) {
+                try {
+                    s3Service.deleteByKey(url);
+                } catch (Exception e) {
+                    // 이미지 하나 실패해도 전체 롤백하지 않도록 로깅만 하고 계속 진행
+                    // 필요하면 @Slf4j 붙이고 log.warn 사용
+                    System.out.println("S3 이미지 삭제 실패: " + url + " / " + e.getMessage());
+                }
+            }
+        }
+
+        // 4) 이미지 레코드 물리 삭제
+        reviewImageRepository.deleteAll(images);
     }
     @Transactional
     public void deactivateReviewByAdmin(Long reviewId) {
