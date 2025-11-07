@@ -28,8 +28,7 @@ public class BoardResponseDto {
     private java.time.LocalDateTime createdAt;
     private java.time.LocalDateTime updatedAt;
     private String authorProfileImageUrl;
-
-    // === 아래 두 줄 추가 ===
     private long likeCount;
     private boolean isLiked;
+    private List<String> hashtags;
 }

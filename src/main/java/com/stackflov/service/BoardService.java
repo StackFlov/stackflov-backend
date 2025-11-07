@@ -29,6 +29,7 @@ public class BoardService {
     private final BannedWordService bannedWordService;
     private final MentionService mentionService;
     private final HashtagService hashtagService;
+    private final BoardHashtagRepository boardHashtagRepository;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -57,6 +58,8 @@ public class BoardService {
                 ? defaultProfileImage                       // 기본 CDN 이미지
                 : s3Service.publicUrl(raw);
 
+        List<String> hashtags = boardHashtagRepository.findHashtagNamesByBoardId(boardId);
+
         return BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
@@ -72,6 +75,7 @@ public class BoardService {
                 .likeCount(likeRepository.countByBoardAndActiveTrue(board))
                 .isLiked(isLiked)
                 .authorProfileImageUrl(authorProfileImageUrl)
+                .hashtags(hashtags)
                 .build();
     }
 
