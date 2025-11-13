@@ -80,6 +80,14 @@ public class User {
         this.active = active;
     }
 
+    public void updatePhoneNumber(String phoneNumber) {   // ✅ 추가
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void updateAddress(String address) {           // ✅ 추가
+        this.address = address;
+    }
+
     public void setSuspensionEndDate(LocalDateTime suspensionEndDate) {this.suspensionEndDate = suspensionEndDate;}
 
     public void setReportCount(int reportCount) {

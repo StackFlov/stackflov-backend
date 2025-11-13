@@ -93,6 +93,14 @@ public class UserService {
         if (dto.getProfileImage() != null) {
             user.updateProfileImage(dto.getProfileImage());
         }
+
+        if (dto.getPhoneNumber() != null) {              // ✅ 추가
+            user.updatePhoneNumber(dto.getPhoneNumber());
+        }
+
+        if (dto.getAddress() != null) {                  // ✅ 추가
+            user.updateAddress(dto.getAddress());
+        }
     }
     @Transactional
     public void updatePassword(String email, PasswordUpdateRequestDto dto) {

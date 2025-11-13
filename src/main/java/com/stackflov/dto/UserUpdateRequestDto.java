@@ -8,4 +8,6 @@ import lombok.Setter;
 public class UserUpdateRequestDto {
     private String nickname;
     private String profileImage;  // S3 URL
+    private String phoneNumber;   // ✅ 전화번호
+    private String address;
 }

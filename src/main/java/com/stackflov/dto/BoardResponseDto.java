@@ -1,13 +1,9 @@
 package com.stackflov.dto;
 
-import com.stackflov.domain.Board;
-import com.stackflov.domain.BoardImage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.stream.Collectors;
 
 import java.util.List;
 
