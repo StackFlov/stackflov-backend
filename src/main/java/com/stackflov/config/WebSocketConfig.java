@@ -18,8 +18,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 클라이언트가 웹소켓 연결을 시작할 경로(endpoint)를 설정합니다.
-        registry.addEndpoint("/ws/chat").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws-stomp") // 연결 엔드포인트
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     @Override

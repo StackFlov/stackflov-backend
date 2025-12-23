@@ -7,6 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collections;
+import java.util.List;
+import java.security.Principal;
 
 import java.security.Key;
 import java.util.Date;
@@ -96,5 +103,21 @@ public class JwtProvider {
     public String getRole(String token) {
         Object role = parseClaims(token).get("role");
         return role != null ? role.toString() : null;
+    }
+
+    public Authentication getAuthentication(String token) {
+        // 1. 토큰에서 이메일 추출
+        String email = this.getEmail(token);
+
+        // 2. 토큰에서 권한 정보 추출
+        String role = this.getRole(token);
+
+        // 3. 권한 설정 (Spring Security 형식에 맞게 "ROLE_USER" 등으로 변환)
+        // 만약 DB에 저장된 실제 권한이 필요하다면 UserDetailsService를 주입받아 loadUserByUsername을 호출해야 합니다.
+        // 지금은 토큰에 담긴 role 정보를 그대로 사용하도록 구현하겠습니다.
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
+
+        // 4. Spring Security 인증 객체 생성 (비밀번호는 null로 처리)
+        return new UsernamePasswordAuthenticationToken(email, "", authorities);
     }
 }
