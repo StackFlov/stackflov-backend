@@ -19,10 +19,18 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatService chatService;
 
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDto message) {
-        // /sub/chat/room/{roomId}를 구독 중인 사람들에게 메시지 전달
-        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+    public void message(ChatMessageDto message, Authentication authentication) {
+        // 1. 세션에서 인증 정보(CustomUserPrincipal) 꺼내기
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+
+        // 2. 중요: 메시지를 DB에 저장하고, 저장된 정보(ID, 발송시간 등)가 담긴 DTO 받기
+        ChatMessageResponseDto savedMessage = chatService.saveMessage(message, email);
+
+        // 3. 저장된 메시지 정보를 해당 채팅방을 구독 중인 모든 유저에게 실시간 전송
+        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), savedMessage);
     }
 }

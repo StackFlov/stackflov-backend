@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StackFlov Chat Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h2>StackFlov 실시간 채팅 테스트</h2>
+
+<div>
+    <input type="text" id="token" placeholder="JWT 토큰 입력 (Bearer 제외)" style="width: 300px;"><br>
+    <input type="text" id="roomId" placeholder="채팅방 ID (예: 1)">
+    <button onclick="connect()">연결 및 구독</button>
+    <button onclick="disconnect()">연결 해제</button>
+</div>
+<br>
+<div>
+    <input type="text" id="message" placeholder="메시지 내용 입력">
+    <button onclick="sendMessage()">전송</button>
+</div>
+
+<div id="status" style="color: blue; margin-top: 10px;">상태: 연결 끊김</div>
+<ul id="chat-box" style="border: 1px solid #ccc; height: 200px; overflow-y: scroll;">
+    <li>메시지가 여기에 표시됩니다.</li>
+</ul>
+
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var token = document.getElementById('token').value;
+        var roomId = document.getElementById('roomId').value;
+
+        // 1. WebSocketConfig의 엔드포인트(/ws-stomp)로 SockJS 연결
+        var socket = new SockJS('http://localhost:8080/ws-stomp');
+        stompClient = Stomp.over(socket);
+
+        // 2. CONNECT 시 Authorization 헤더 전송 (StompHandler에서 검증)
+        var headers = { 'Authorization': 'Bearer ' + token };
+
+        stompClient.connect(headers, function (frame) {
+            document.getElementById('status').innerText = "상태: 연결됨 (방 ID: " + roomId + ")";
+            console.log('Connected: ' + frame);
+
+            // 3. /sub/chat/room/{roomId} 경로 구독
+            stompClient.subscribe('/sub/chat/room/' + roomId, function (response) {
+                showMessage(JSON.parse(response.body));
+            });
+        }, function (error) {
+            alert('연결 실패: ' + error);
+        });
+    }
+
+    function sendMessage() {
+        var roomId = document.getElementById('roomId').value;
+        var messageContent = document.getElementById('message').value;
+
+        // 4. ChatController의 @MessageMapping("/chat/message")로 전송
+        // ChatMessageDto 규격에 맞게 JSON 생성
+        var chatMessage = {
+            roomId: roomId,
+            message: messageContent
+        };
+
+        stompClient.send("/pub/chat/message", {}, JSON.stringify(chatMessage));
+    }
+
+    function showMessage(msg) {
+        var chatBox = document.getElementById('chat-box');
+        var li = document.createElement('li');
+        // ChatMessageResponseDto 규격에 맞춰 출력
+        li.appendChild(document.createTextNode("[" + msg.senderNickname + "] " + msg.content));
+        chatBox.appendChild(li);
+    }
+
+    function disconnect() {
+        if (stompClient !== null) stompClient.disconnect();
+        document.getElementById('status').innerText = "상태: 연결 끊김";
+    }
+</script>
+</body>
+</html>
