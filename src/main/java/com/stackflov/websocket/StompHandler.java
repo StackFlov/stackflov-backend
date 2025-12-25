@@ -14,6 +14,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,10 @@ public class StompHandler implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor acc = StompHeaderAccessor.wrap(message);
+        // wrap 대신 getAccessor를 사용하여 기존 세션 정보를 유지합니다.
+        StompHeaderAccessor acc = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        if (acc == null) return message;
+
         StompCommand cmd = acc.getCommand();
         if (cmd == null) return message;
 
@@ -86,7 +90,8 @@ public class StompHandler implements ChannelInterceptor {
 
     private void ensureParticipant(StompHeaderAccessor acc, Long roomId) {
         var auth = acc.getUser();
-        if (!(auth instanceof UsernamePasswordAuthenticationToken token) || token.getPrincipal() == null) {
+        // 여기서 null이 반환되어 "인증이 필요합니다" 에러가 났던 것입니다.
+        if (auth == null || !(auth instanceof UsernamePasswordAuthenticationToken token)) {
             throw new org.springframework.security.access.AccessDeniedException("인증이 필요합니다.");
         }
         String email;
@@ -95,10 +100,12 @@ public class StompHandler implements ChannelInterceptor {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("사용자를 찾을 수 없습니다."));
-        ChatRoom room = chatRoomRepository.findById(roomId)
+        ChatRoom room = chatRoomRepository.findByIdWithParticipants(roomId)
                 .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("채팅방을 찾을 수 없습니다."));
 
+        // 이제 room.getParticipants()를 호출해도 에러가 나지 않습니다.
         boolean ok = room.getParticipants().stream().anyMatch(u -> u.getId().equals(user.getId()));
+
         if (!ok) {
             throw new org.springframework.security.access.AccessDeniedException("채팅방 참가자만 접근할 수 있습니다.");
         }
