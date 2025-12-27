@@ -17,4 +17,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Optional<ChatRoom> findDirectRoomBetween(@Param("u1") Long userId1, @Param("u2") Long userId2);
     @Query("SELECT r FROM ChatRoom r JOIN FETCH r.participants WHERE r.id = :roomId")
     Optional<ChatRoom> findByIdWithParticipants(@Param("roomId") Long roomId);
+
+    @Query("SELECT r.id FROM ChatRoom r " +
+            "JOIN r.participants p1 " +
+            "JOIN r.participants p2 " +
+            "WHERE p1.id = :user1Id AND p2.id = :user2Id")
+    Optional<Long> findRoomIdByParticipants(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 }

@@ -26,15 +26,19 @@ public class ChatService {
     public Long createChatRoom(String userEmail, ChatRoomRequestDto requestDto) {
         User me = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 본인 채팅 방지 로직 (매우 잘 만드셨습니다!)
         if (me.getId().equals(requestDto.getTargetUserId())) {
             throw new IllegalArgumentException("본인과는 채팅방을 생성할 수 없습니다.");
         }
+
         User you = userRepository.findById(requestDto.getTargetUserId())
                 .orElseThrow(() -> new IllegalArgumentException("상대방 사용자를 찾을 수 없습니다."));
 
+        // 중복 체크 로직
         return chatRoomRepository.findDirectRoomBetween(me.getId(), you.getId())
-                .map(ChatRoom::getId)
-                .orElseGet(() -> {
+                .map(ChatRoom::getId) // 이미 있으면 그 ID 반환
+                .orElseGet(() -> {    // 없으면 새로 생성
                     ChatRoom newRoom = ChatRoom.builder()
                             .participants(new java.util.HashSet<>(java.util.List.of(me, you)))
                             .build();
