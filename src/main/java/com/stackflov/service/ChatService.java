@@ -6,6 +6,7 @@ import com.stackflov.domain.User;
 import com.stackflov.dto.ChatMessageDto;
 import com.stackflov.dto.ChatMessageResponseDto;
 import com.stackflov.dto.ChatRoomRequestDto;
+import com.stackflov.dto.ChatRoomResponseDto;
 import com.stackflov.repository.ChatMessageRepository;
 import com.stackflov.repository.ChatRoomRepository;
 import com.stackflov.repository.UserRepository;
@@ -83,5 +84,18 @@ public class ChatService {
                 ChatMessage.builder().chatRoom(room).sender(sender).content(dto.getMessage()).build()
         );
         return new ChatMessageResponseDto(saved);
+    }
+    @Transactional(readOnly = true)
+    public List<ChatRoomResponseDto> getMyRooms(String email) {
+        User me = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 내가 참여 중인 모든 방 조회
+        List<ChatRoom> rooms = chatRoomRepository.findAllByParticipantsId(me.getId());
+
+        // DTO로 변환하여 반환 (방 번호, 상대방 닉네임 등 포함)
+        return rooms.stream()
+                .map(room -> new ChatRoomResponseDto(room, me.getId()))
+                .toList();
     }
 }

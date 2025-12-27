@@ -3,6 +3,7 @@ package com.stackflov.controller;
 import com.stackflov.config.CustomUserPrincipal;
 import com.stackflov.dto.ChatMessageResponseDto;
 import com.stackflov.dto.ChatRoomRequestDto;
+import com.stackflov.dto.ChatRoomResponseDto;
 import com.stackflov.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,5 +43,12 @@ public class ChatRoomController {
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         List<ChatMessageResponseDto> messages = chatService.getMessages(roomId, principal.getEmail());
         return ResponseEntity.ok(messages);
+    }
+
+    @Operation(summary = "내 채팅방 목록 조회", description = "현재 로그인한 유저가 참여 중인 채팅방 목록을 반환합니다.")
+    @GetMapping("/rooms")
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyRooms(@AuthenticationPrincipal CustomUserPrincipal principal) {
+        List<ChatRoomResponseDto> rooms = chatService.getMyRooms(principal.getEmail());
+        return ResponseEntity.ok(rooms);
     }
 }
