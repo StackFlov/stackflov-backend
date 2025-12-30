@@ -41,5 +41,4 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
 
     @Query("SELECT bh.board FROM BoardHashtag bh JOIN bh.hashtag h WHERE h.name = :tagName AND bh.board.active = true")
     Page<Board> findByHashtagName(@Param("tagName") String tagName, Pageable pageable);
-
 }

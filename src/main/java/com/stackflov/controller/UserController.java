@@ -1,9 +1,11 @@
 package com.stackflov.controller;
 
 import com.stackflov.dto.PasswordUpdateRequestDto;
+import com.stackflov.dto.UserProfileDetailResponseDto;
 import com.stackflov.dto.UserResponseDto;
 import com.stackflov.dto.UserUpdateRequestDto;
 import com.stackflov.service.UserService;
+import io.micrometer.common.lang.Nullable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +44,15 @@ public class UserController {
                                                @AuthenticationPrincipal CustomUserPrincipal principal) {
         userService.updatePassword(principal.getEmail(), dto);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "타인 프로필 상세 조회", description = "사용자 정보와 함께 게시글, 리뷰, 팔로우 목록을 조회합니다.")
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<UserProfileDetailResponseDto> getProfile(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal @Nullable CustomUserPrincipal principal) {
+
+        String email = (principal != null) ? principal.getEmail() : null;
+        return ResponseEntity.ok(userService.getUserProfileDetail(userId, email));
     }
 }

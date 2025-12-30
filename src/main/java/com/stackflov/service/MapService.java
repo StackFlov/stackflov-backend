@@ -6,6 +6,7 @@ import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -265,6 +266,17 @@ public class MapService {
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();
+    }
+
+    public List<ReviewListResponseDto> getReviewsByAuthor(User author, String requesterEmail) {
+        // ReviewRepository에서 findByAuthorAndActiveTrue 사용
+        return reviewRepository.findByAuthorAndActiveTrue(author, PageRequest.of(0, 10)).getContent()
+                .stream()
+                .map(r -> {
+                    // 기존 getReviews의 변환 로직 재사용
+                    return ReviewListResponseDto.from(r, requesterEmail, false, 0, Collections.emptyList());
+                })
+                .collect(Collectors.toList());
     }
 
     private String normalizeKey(String keyOrUrl) {

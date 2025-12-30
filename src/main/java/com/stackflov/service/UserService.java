@@ -5,6 +5,9 @@ import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
 import com.stackflov.dto.*;
 import com.stackflov.jwt.JwtProvider;
+import com.stackflov.repository.BoardRepository;
+import com.stackflov.repository.FollowRepository;
+import com.stackflov.repository.ReviewRepository;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,9 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
     private final S3Service s3Service;
+    private final BoardRepository boardRepository;
+    private final ReviewRepository reviewRepository;
+    private final FollowService followService;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -124,5 +131,71 @@ public class UserService {
             throw new IllegalStateException("정지된 계정입니다. 해제일: " + user.getSuspensionEndDate());
         }
         return user;
+    }
+
+    @Transactional
+    public UserProfileDetailResponseDto getUserProfileDetail(Long targetUserId, String requesterEmail) {
+        // 1. 대상 사용자 조회
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        // 2. 게시글 리스트 조회 (최근순 5개 예시)
+        List<BoardListResponseDto> boards = boardRepository.findByAuthorAndActiveTrue(
+                targetUser,
+                org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending())
+        ).stream().map(board -> BoardListResponseDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .category(board.getCategory())
+                .viewCount(board.getViewCount())
+                .createdAt(board.getCreatedAt())
+                .thumbnailUrl(board.getImages().stream()
+                        .filter(img -> img.isActive())
+                        .findFirst()
+                        .map(img -> s3Service.publicUrl(img.getImageUrl()))
+                        .orElse(null))
+                .build()
+        ).toList();
+
+        // 3. 리뷰 리스트 조회 (최근순 5개 예시)
+        List<ReviewListResponseDto> reviews = reviewRepository.findByAuthorAndActiveTrue(
+                targetUser,
+                org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending())
+        ).stream().map(review -> ReviewListResponseDto.from(
+                review,
+                requesterEmail,
+                false, // 좋아요 여부 로직 필요 시 추가
+                0,     // 좋아요 카운트 로직 필요 시 추가
+                review.getReviewImages().stream().map(img -> s3Service.publicUrl(img.getImageUrl())).toList()
+        )).toList();
+
+        // 4. 팔로우/팔로잉 리스트 (FollowService 활용)
+        List<UserResponseDto> followers = followService.getFollowers(targetUserId);
+        List<UserResponseDto> following = followService.getFollowing(targetUserId);
+
+        // 5. 로그인한 사용자가 이 프로필 주인을 팔로우 중인지 확인
+        boolean isFollowing = false;
+        if (requesterEmail != null) {
+            User requester = userRepository.findByEmail(requesterEmail).orElse(null);
+            if (requester != null) {
+                isFollowing = followService.isFollowing(requester.getId(), targetUserId);
+            }
+        }
+
+        String profileUrl = (targetUser.getProfileImage() == null || targetUser.getProfileImage().isBlank())
+                ? defaultProfileImage
+                : s3Service.publicUrl(targetUser.getProfileImage());
+
+        return UserProfileDetailResponseDto.builder()
+                .userId(targetUser.getId())
+                .nickname(targetUser.getNickname())
+                .profileImageUrl(profileUrl)
+                .level(targetUser.getLevel())
+                .isFollowing(isFollowing)
+                .boards(boards)
+                .reviews(reviews)
+                .followers(followers)
+                .following(following)
+                .build();
     }
 }
