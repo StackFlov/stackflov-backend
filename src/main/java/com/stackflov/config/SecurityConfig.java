@@ -146,6 +146,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/notices/**").permitAll()
                         .requestMatchers("/admin/notices/**").hasRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/users/*/profile").permitAll()
+
                         // 나머지
                         .anyRequest().authenticated()
                 )
