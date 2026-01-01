@@ -1,5 +1,6 @@
 package com.stackflov.dto;
 
+import com.stackflov.domain.Role;
 import lombok.Builder;
 import lombok.Getter;
 import java.util.List;
@@ -12,6 +13,7 @@ public class UserProfileDetailResponseDto {
     private String nickname;
     private String profileImageUrl;
     private int level;
+    private Role role;
     private boolean isFollowing; // 요청자가 이 사람을 팔로우 중인지
 
     // 2. 작성한 게시글 목록 (최근순)
