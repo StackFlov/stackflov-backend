@@ -1,8 +1,6 @@
 package com.stackflov.dto;
 
 import com.stackflov.domain.Review;
-import com.stackflov.domain.ReviewImage;
-import io.micrometer.common.lang.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

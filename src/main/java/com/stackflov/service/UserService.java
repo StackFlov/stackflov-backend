@@ -6,7 +6,6 @@ import com.stackflov.domain.User;
 import com.stackflov.dto.*;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.BoardRepository;
-import com.stackflov.repository.FollowRepository;
 import com.stackflov.repository.ReviewRepository;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -139,6 +138,10 @@ public class UserService {
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
+        if (targetUser.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("관리자 프로필은 조회할 수 없습니다.");
+        }
+
         // 2. 게시글 리스트 조회 (최근순 5개 예시)
         List<BoardListResponseDto> boards = boardRepository.findByAuthorAndActiveTrue(
                 targetUser,
@@ -191,6 +194,7 @@ public class UserService {
                 .nickname(targetUser.getNickname())
                 .profileImageUrl(profileUrl)
                 .level(targetUser.getLevel())
+                .role(targetUser.getRole())
                 .isFollowing(isFollowing)
                 .boards(boards)
                 .reviews(reviews)
