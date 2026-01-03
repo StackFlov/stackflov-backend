@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class CommentResponseDto {
     private Long id;
     private String content;
-    private Long authorId;        // ✅ 추가: 프로필 이동을 위한 ID
+    private Long authorId;
     private String authorNickname;
     private String authorEmail;
     private LocalDateTime createdAt;

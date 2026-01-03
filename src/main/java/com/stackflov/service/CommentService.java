@@ -168,7 +168,7 @@ public class CommentService {
                 .map(comment -> new CommentResponseDto(
                         comment.getId(),
                         comment.getContent(),
-                        comment.getUser().getId(),        
+                        comment.getUser().getId(),
                         comment.getUser().getNickname(),
                         comment.getUser().getEmail(),
                         comment.getCreatedAt(),

@@ -42,13 +42,15 @@ public class MyContentService {
         User user = getUserByEmail(email);
         // ⬇️ 내 댓글 + 댓글 active=true + 대상(Board) active=true
         return commentRepository.findActiveByUserOnBoards(user, pageable)
-                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
+                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getId(),        // ✅ 추가: authorId
+                        c.getUser().getNickname(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
     }
 
     public Page<CommentResponseDto> getMyReviewComments(String email, Pageable pageable) {
         User user = getUserByEmail(email);
         // ⬇️ 내 댓글 + 댓글 active=true + 대상(Review) active=true
         return commentRepository.findActiveByUserOnReviews(user, pageable)
-                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
+                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getId(),        // ✅ 추가: authorId
+                        c.getUser().getNickname(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
     }
 }
