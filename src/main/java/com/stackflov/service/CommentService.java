@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final NotificationService notificationService;
     private final ReviewRepository reviewRepository;
@@ -119,6 +118,8 @@ public class CommentService {
                 .map(comment -> new CommentResponseDto(
                         comment.getId(),
                         comment.getContent(),
+                        comment.getUser().getId(),        // ✅ 추가: 작성자 ID
+                        comment.getUser().getNickname(),
                         comment.getUser().getEmail(),
                         comment.getCreatedAt(),
                         comment.getUpdatedAt()
@@ -167,6 +168,8 @@ public class CommentService {
                 .map(comment -> new CommentResponseDto(
                         comment.getId(),
                         comment.getContent(),
+                        comment.getUser().getId(),        
+                        comment.getUser().getNickname(),
                         comment.getUser().getEmail(),
                         comment.getCreatedAt(),
                         comment.getUpdatedAt()
