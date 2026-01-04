@@ -10,6 +10,7 @@ import com.stackflov.repository.ReviewRepository;
 import com.stackflov.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -47,39 +49,59 @@ public class UserService {
 
         return new TokenResponseDto(accessToken, refreshToken);
     }
+    @Transactional
     public void register(SignupRequestDto signupRequestDto) {
         String email = signupRequestDto.getEmail();
 
-        String input = signupRequestDto.getProfileImage();
-        String profileKey = (input == null || input.isBlank())
-                ? s3Service.extractKey(defaultProfileImage) // 👈 기본도 키로 저장
-                : s3Service.extractKey(input);
+        // ✅ 1. 기본 이미지 경로 주입 여부 로깅 (NPE 방어)
+        if (defaultProfileImage == null) {
+            log.error("[회원가입 에러] 기본 프로필 이미지 경로(defaultProfileImage)가 null입니다. 설정을 확인하세요.");
+            throw new IllegalStateException("서버 설정 오류: 기본 이미지를 찾을 수 없습니다.");
+        }
 
-        // ✅ 이메일 인증 여부 확인
-        String verified = redisService.get("EMAIL_VERIFIED:" + email);
+        String input = signupRequestDto.getProfileImage();
+        String profileKey;
+        try {
+            profileKey = (input == null || input.isBlank())
+                    ? s3Service.extractKey(defaultProfileImage)
+                    : s3Service.extractKey(input);
+        } catch (Exception e) {
+            log.error("[회원가입 에러] 이미지 키 추출 실패: {}", e.getMessage());
+            throw new IllegalArgumentException("프로필 이미지 형식이 올바르지 않습니다.");
+        }
+
+        // ✅ 2. Redis 조회 예외 처리
+        String verified;
+        try {
+            verified = redisService.get("EMAIL_VERIFIED:" + email);
+        } catch (Exception e) {
+            log.error("[회원가입 에러] Redis 연결 실패: {}", e.getMessage());
+            throw new RuntimeException("인증 서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        }
+
         if (!"true".equals(verified)) {
             throw new IllegalArgumentException("이메일 인증이 필요합니다.");
         }
 
-
-        // ✅ 중복 이메일 확인
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        }
-
+        // 5. 유저 생성 및 저장
         User user = User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(signupRequestDto.getPassword()))
                 .nickname(signupRequestDto.getNickname())
-                .profileImage(profileKey)              // ✅ 여기
+                .profileImage(profileKey)
                 .socialType(SocialType.NONE)
                 .socialId(signupRequestDto.getSocialId())
-                .level(0)                           // 기본 고정
-                .role(Role.USER)                    // 기본 고정
+                .level(0)
+                .role(Role.USER)
                 .phoneNumber(signupRequestDto.getPhoneNumber())
-                .address(signupRequestDto.getAddress())
+                .address(signupRequestDto.getAddress()) // 필요 시 addr + addrDetail 결합
                 .build();
+
         userRepository.save(user);
+
+        // ✅ 6. 가입 성공 후 Redis 인증 데이터 삭제 (보안 강화)
+        // 한 번 인증된 데이터가 재사용되는 것을 방지합니다.
+        redisService.delete("EMAIL_VERIFIED:" + email);
     }
     public UserResponseDto getUserByEmail(String email) {
         User user = userRepository.findByEmailAndActiveTrue(email)
