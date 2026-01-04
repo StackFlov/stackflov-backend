@@ -54,7 +54,7 @@ public class UserService {
         String profileKey = (input == null || input.isBlank())
                 ? s3Service.extractKey(defaultProfileImage) // 👈 기본도 키로 저장
                 : s3Service.extractKey(input);
-/*
+
         // ✅ 이메일 인증 여부 확인
         String verified = redisService.get("EMAIL_VERIFIED:" + email);
         if (!"true".equals(verified)) {
@@ -66,7 +66,6 @@ public class UserService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-*/
 
         User user = User.builder()
                 .email(email)
