@@ -62,6 +62,7 @@ public class User {
 
     private String addressDetail; // 추가
 
+    @Column(nullable = false)
     private boolean agreement;    // 추가
 
     public void updateNickname(String nickname) {
@@ -96,5 +97,9 @@ public class User {
 
     public void setReportCount(int reportCount) {
         this.reportCount = reportCount;
+    }
+
+    public void updateAddressDetail(String addressDetail) {
+        this.addressDetail = addressDetail;
     }
 }

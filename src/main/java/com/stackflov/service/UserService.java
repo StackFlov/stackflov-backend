@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -96,11 +97,12 @@ public class UserService {
         String fullProfileUrl = s3Service.publicUrl(user.getProfileImage());
         return new UserResponseDto(user, fullProfileUrl);
     }
+
     @Transactional
     public void updateUser(String email, UserUpdateRequestDto dto) {
         User user = getValidUserByEmail(email);
 
-        if (dto.getNickname() != null) {
+        if (dto.getNickname() != null && StringUtils.hasText(dto.getNickname())) {
             user.updateNickname(dto.getNickname());
         }
 
@@ -108,14 +110,19 @@ public class UserService {
             user.updateProfileImage(dto.getProfileImage());
         }
 
-        if (dto.getPhoneNumber() != null) {              // ✅ 추가
+        if (dto.getPhoneNumber() != null) {
             user.updatePhoneNumber(dto.getPhoneNumber());
         }
 
-        if (dto.getAddress() != null) {                  // ✅ 추가
+        if (dto.getAddress() != null) {
             user.updateAddress(dto.getAddress());
         }
+
+        if (dto.getAddressDetail() != null) {
+            user.updateAddressDetail(dto.getAddressDetail());
+        }
     }
+
     @Transactional
     public void updatePassword(String email, PasswordUpdateRequestDto dto) {
         // 사용자 확인
