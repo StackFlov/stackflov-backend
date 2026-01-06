@@ -60,6 +60,10 @@ public class User {
 
     private LocalDateTime suspensionEndDate;
 
+    private String addressDetail; // 추가
+
+    private boolean agreement;    // 추가
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }

@@ -18,4 +18,6 @@ public class SignupRequestDto {
     private Role role;               // 역할 (USER, ADMIN, GUEST)
     private String phoneNumber;
     private String address;
+    private String addressDetail;  // 상세주소
+    private boolean agreement;     // 약관 동의 여부
 }

@@ -96,11 +96,11 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "회원가입", description = "이메일/비밀번호 및 기본 정보를 이용해 새 계정을 생성합니다.")
+    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody SignupRequestDto signupRequestDto) {
         userService.register(signupRequestDto);
-        return ResponseEntity.ok("회원가입 성공");
+        return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 액세스/리프레시 토큰을 발급합니다.")
