@@ -1,7 +1,6 @@
 package com.stackflov.websocket;
 
 import com.stackflov.config.CustomUserPrincipal;
-import com.stackflov.jwt.JwtAuthenticationEntryPoint;
 import com.stackflov.jwt.JwtProvider;
 import com.stackflov.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
