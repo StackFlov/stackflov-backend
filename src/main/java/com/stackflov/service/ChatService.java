@@ -52,7 +52,7 @@ public class ChatService {
         return room.getParticipants().stream().anyMatch(u -> u.getId().equals(uid));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional // 읽음 처리가 포함되므로 readOnly=true를 제거하거나 별도로 처리해야 합니다.
     public List<ChatMessageResponseDto> getMessages(Long roomId, String requesterEmail) {
         User requester = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -62,6 +62,9 @@ public class ChatService {
         if (!isParticipant(room, requester)) {
             throw new org.springframework.security.access.AccessDeniedException("채팅방 참가자만 열람할 수 있습니다.");
         }
+
+        // [추가] 해당 방의 메시지들 중 상대방이 보낸 것을 모두 '읽음'으로 변경
+        chatMessageRepository.markAsRead(roomId, requester.getId());
 
         List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(roomId);
         return messages.stream().map(ChatMessageResponseDto::new).toList();
@@ -90,12 +93,26 @@ public class ChatService {
         User me = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // 내가 참여 중인 모든 방 조회
         List<ChatRoom> rooms = chatRoomRepository.findAllByParticipantsId(me.getId());
 
-        // DTO로 변환하여 반환 (방 번호, 상대방 닉네임 등 포함)
         return rooms.stream()
-                .map(room -> new ChatRoomResponseDto(room, me.getId()))
+                .map(room -> {
+                    // 1. 해당 방의 가장 최근 메시지 1건 조회
+                    ChatMessage lastMsg = chatMessageRepository.findFirstByChatRoomIdOrderBySentAtDesc(room.getId())
+                            .orElse(null);
+
+                    // 2. 해당 방에서 내가 수신자인데 아직 안 읽은 메시지 개수 조회
+                    // (ChatMessage 엔티티에 isRead 필드가 있다고 가정합니다)
+                    long unreadCount = chatMessageRepository.countByChatRoomIdAndSenderIdNotAndIsReadFalse(room.getId(), me.getId());
+
+                    return new ChatRoomResponseDto(
+                            room,
+                            me.getId(),
+                            lastMsg != null ? lastMsg.getContent() : "채팅 내역이 없습니다.",
+                            lastMsg != null ? lastMsg.getSentAt() : null,
+                            unreadCount
+                    );
+                })
                 .toList();
     }
 }

@@ -3,20 +3,28 @@ package com.stackflov.dto;
 import com.stackflov.domain.ChatRoom;
 import com.stackflov.domain.User;
 import lombok.Getter;
+import java.time.LocalDateTime;
 
 @Getter
 public class ChatRoomResponseDto {
     private final Long roomId;
     private String otherUserNickname;
+    private String lastMessage;       // 추가: 목록에 보여줄 마지막 메시지
+    private LocalDateTime lastMessageTime; // 추가: 마지막 메시지 시간
+    private long unreadCount;         // 추가: 빨간색 숫자로 표시될 개수
 
-    public ChatRoomResponseDto(ChatRoom room, Long myId) {
+    // 생성자를 확장합니다.
+    public ChatRoomResponseDto(ChatRoom room, Long myId, String lastMessage, LocalDateTime lastMessageTime, long unreadCount) {
         this.roomId = room.getId();
 
-        // 참여자 목록에서 '나'가 아닌 첫 번째 사람을 찾아 닉네임을 가져옵니다.
         this.otherUserNickname = room.getParticipants().stream()
                 .filter(user -> !user.getId().equals(myId))
                 .findFirst()
                 .map(User::getNickname)
                 .orElse("알 수 없는 사용자");
+
+        this.lastMessage = lastMessage;
+        this.lastMessageTime = lastMessageTime;
+        this.unreadCount = unreadCount;
     }
 }

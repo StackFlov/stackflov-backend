@@ -35,6 +35,9 @@ public class ChatMessage {
     @CreationTimestamp
     private LocalDateTime sentAt;
 
+    @Column(nullable = false)
+    private boolean isRead = false;
+
     @Builder
     public ChatMessage(ChatRoom chatRoom, User sender, String content) {
         this.chatRoom = chatRoom;
