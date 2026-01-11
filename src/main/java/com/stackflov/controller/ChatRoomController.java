@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Operation(
             summary = "채팅방 생성",
@@ -42,6 +44,8 @@ public class ChatRoomController {
             @PathVariable Long roomId,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         List<ChatMessageResponseDto> messages = chatService.getMessages(roomId, principal.getEmail());
+        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, "{\"type\":\"READ_ALL\"}");
+
         return ResponseEntity.ok(messages);
     }
 

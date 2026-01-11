@@ -13,6 +13,7 @@ public class ChatMessageResponseDto {
     private final String content;
     private String senderEmail;
     private final LocalDateTime sentAt;
+    private final boolean isRead;
 
     public ChatMessageResponseDto(ChatMessage message) {
         this.messageId = message.getId();
@@ -20,5 +21,6 @@ public class ChatMessageResponseDto {
         this.content = message.getContent();
         this.senderEmail = message.getSender().getEmail();
         this.sentAt = message.getSentAt();
+        this.isRead = message.isRead();
     }
 }
