@@ -22,6 +22,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public Long createChatRoom(String userEmail, ChatRoomRequestDto requestDto) {
@@ -97,12 +98,18 @@ public class ChatService {
 
         return rooms.stream()
                 .map(room -> {
-                    // 1. 해당 방의 가장 최근 메시지 1건 조회
-                    ChatMessage lastMsg = chatMessageRepository.findFirstByChatRoomIdOrderBySentAtDesc(room.getId())
+                    User otherUser = room.getParticipants().stream()
+                            .filter(u -> !u.getId().equals(me.getId()))
+                            .findFirst()
                             .orElse(null);
 
-                    // 2. 해당 방에서 내가 수신자인데 아직 안 읽은 메시지 개수 조회
-                    // (ChatMessage 엔티티에 isRead 필드가 있다고 가정합니다)
+                    String profileUrl = null;
+                    if (otherUser != null && otherUser.getProfileImage() != null) {
+                        profileUrl = s3Service.publicUrl(otherUser.getProfileImage());
+                    }
+
+                    ChatMessage lastMsg = chatMessageRepository.findFirstByChatRoomIdOrderBySentAtDesc(room.getId())
+                            .orElse(null);
                     long unreadCount = chatMessageRepository.countByChatRoomIdAndSenderIdNotAndIsReadFalse(room.getId(), me.getId());
 
                     return new ChatRoomResponseDto(
@@ -110,7 +117,8 @@ public class ChatService {
                             me.getId(),
                             lastMsg != null ? lastMsg.getContent() : "채팅 내역이 없습니다.",
                             lastMsg != null ? lastMsg.getSentAt() : null,
-                            unreadCount
+                            unreadCount,
+                            profileUrl
                     );
                 })
                 .toList();
