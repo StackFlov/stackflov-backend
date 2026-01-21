@@ -28,6 +28,10 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReviewCategory category;
+
     @Column(nullable = false, length = 100)
     private String title;
 
@@ -61,11 +65,12 @@ public class Review {
         reviewImage.setReview(this);
     }
 
-    public void update(String title, String address, String content, int rating) {
+    public void update(String title, String address, String content, int rating, ReviewCategory category) {
         this.title = title;
         this.address = address;
         this.content = content;
         this.rating = rating;
+        this.category = category;
     }
 
     public void deactivate() { this.active = false; }
