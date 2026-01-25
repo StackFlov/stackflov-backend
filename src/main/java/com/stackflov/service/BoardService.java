@@ -267,6 +267,9 @@ public class BoardService {
                 .category(data.getCategory())
                 .build();
 
+        user.addExp(10);
+        userRepository.save(user);
+
         if (images != null && !images.isEmpty()) {
             AtomicInteger order = new AtomicInteger(0);
             images.stream()

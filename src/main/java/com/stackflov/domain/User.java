@@ -39,6 +39,10 @@ public class User {
 
     private int level;  // 등급
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int exp = 0; // 현재 경험치
+
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
@@ -101,5 +105,20 @@ public class User {
 
     public void updateAddressDetail(String addressDetail) {
         this.addressDetail = addressDetail;
+    }
+
+    public void addExp(int amount) {
+        this.exp += amount;
+        checkLevelUp();
+    }
+    private void checkLevelUp() {
+        // 예시 공식: 레벨 * 100의 경험치를 채우면 레벨업
+        // $EXP \geq Level \times 100$
+        int requiredExp = this.level * 100;
+
+        if (this.exp >= requiredExp) {
+            this.exp -= requiredExp; // 남은 경험치 이월
+            this.level++;
+        }
     }
 }

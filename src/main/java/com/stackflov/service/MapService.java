@@ -60,6 +60,9 @@ public class MapService {
                 savedReview.addReviewImage(reviewImage); // ✅ 연관관계 편의 메서드 사용
             }
         }
+        user.addExp(10);
+        userRepository.save(user);
+
         return savedReview.getId();
     }
 

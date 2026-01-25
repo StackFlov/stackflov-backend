@@ -25,6 +25,7 @@ public class CommentService {
     private final UserService userService;
     private final BannedWordService bannedWordService;
     private final MentionService mentionService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Long createComment(CommentRequestDto dto, String userEmail) {
@@ -75,6 +76,9 @@ public class CommentService {
                 );
             }
         }
+
+        user.addExp(5);
+        userRepository.save(user);
 
         Comment comment = commentRepository.save(commentBuilder.build());
 
