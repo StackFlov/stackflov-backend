@@ -13,6 +13,7 @@ public class UserProfileDetailResponseDto {
     private String nickname;
     private String profileImageUrl;
     private int level;
+    private int exp;
     private Role role;
     private boolean isFollowing; // 요청자가 이 사람을 팔로우 중인지
 

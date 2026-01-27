@@ -15,6 +15,7 @@ public class UserResponseDto {
     private final String profileImage;
     private final SocialType socialType;
     private final int level;
+    private int exp;
     private final Role role;
     private final LocalDateTime createdAt;
     private final String phoneNumber;
@@ -27,6 +28,7 @@ public class UserResponseDto {
         this.profileImage = profileImageUrl;
         this.socialType = user.getSocialType();
         this.level = user.getLevel();
+        this.exp = user.getExp();
         this.role = user.getRole();
         this.createdAt = user.getCreatedAt();
         this.phoneNumber = user.getPhoneNumber();
