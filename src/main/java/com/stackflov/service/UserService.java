@@ -96,7 +96,13 @@ public class UserService {
         User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 탈퇴한 사용자입니다."));
         String fullProfileUrl = s3Service.publicUrl(user.getProfileImage());
-        return new UserResponseDto(user, fullProfileUrl);
+
+        UserResponseDto response = new UserResponseDto(user, fullProfileUrl);
+        long followers = followService.getFollowers(user.getId()).size();
+        long following = followService.getFollowing(user.getId()).size();
+        response.setCounts(followers, following);
+
+        return response;
     }
 
     @Transactional

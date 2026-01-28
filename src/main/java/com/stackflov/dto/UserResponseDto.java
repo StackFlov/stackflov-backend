@@ -20,6 +20,8 @@ public class UserResponseDto {
     private final LocalDateTime createdAt;
     private final String phoneNumber;
     private final String address;
+    private long followerCount;
+    private long followingCount;
 
     public UserResponseDto(User user, String profileImageUrl) {
         this.id = user.getId();
@@ -33,5 +35,10 @@ public class UserResponseDto {
         this.createdAt = user.getCreatedAt();
         this.phoneNumber = user.getPhoneNumber();
         this.address = user.getAddress();
+    }
+
+    public void setCounts(long followerCount, long followingCount) {
+        this.followerCount = followerCount;
+        this.followingCount = followingCount;
     }
 }
