@@ -337,4 +337,16 @@ public class AdminController {
         bannedWordService.deleteBannedWord(dto.getWord());
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(
+            summary = "관리자: 사용자 레벨 및 경험치 직접 수정",
+            description = "특정 사용자(userId)의 레벨과 경험치 값을 관리자 권한으로 강제 변경합니다."
+    )
+    @PutMapping("/users/{userId}/level-exp")
+    public ResponseEntity<String> updateUserLevelExp(
+            @PathVariable Long userId,
+            @RequestBody LevelExpRequestDto dto) {
+        adminService.updateUserLevelExp(userId, dto);
+        return ResponseEntity.ok("사용자의 레벨과 경험치가 성공적으로 수정되었습니다.");
+    }
 }

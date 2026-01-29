@@ -1,5 +1,6 @@
 package com.stackflov.domain;
 
+import com.stackflov.dto.LevelExpRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -121,4 +122,6 @@ public class User {
             this.level++;
         }
     }
+    public void setLevel(int level){this.level = level;}
+    public void setExp(int exp){this.exp = exp;}
 }
