@@ -3,6 +3,9 @@ package com.stackflov.repository;
 import com.stackflov.domain.Follow;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,4 +33,10 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     // ⬇ 소프트 삭제 대응 (활성 카운트)
     long countByFollowedIdAndActiveTrue(Long followedId);
     long countByFollowerIdAndActiveTrue(Long followerId);
+
+    @Modifying
+    @Query("UPDATE Follow f SET f.active = false WHERE f.follower.id = :userId OR f.followed.id = :userId")
+    void deactivateAllByUserId(@Param("userId") Long userId);
+
+    boolean existsByFollowerIdAndFollowedIdAndActiveTrue(Long followerId, Long followedId);
 }
