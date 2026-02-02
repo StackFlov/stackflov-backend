@@ -1,5 +1,6 @@
 package com.stackflov.service;
 
+import com.stackflov.domain.NotificationType;
 import com.stackflov.domain.Role;
 import com.stackflov.domain.SocialType;
 import com.stackflov.domain.User;
@@ -32,6 +33,7 @@ public class UserService {
     private final BoardRepository boardRepository;
     private final ReviewRepository reviewRepository;
     private final FollowService followService;
+    private final NotificationService notificationService;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -224,5 +226,35 @@ public class UserService {
                 .followers(followers)
                 .following(following)
                 .build();
+    }
+
+    @Transactional
+    public void grantExperience(Long userId, int amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 1. 경험치 추가 및 레벨업 체크
+        boolean isLevelUp = user.addExp(amount);
+
+        // 2. 레벨업 했다면 알림 발송
+        if (isLevelUp) {
+            String levelName = getLevelName(user.getLevel());
+            String message = "축하합니다! [" + levelName + "] 등급으로 레벨업하셨습니다! 🎉";
+
+            // 기존에 만들어두신 notificationService 활용
+            notificationService.notify(
+                    user,
+                    NotificationType.SYSTEM, // 또는 별도의 LEVEL_UP 타입 추가
+                    message,
+                    "/mypage" // 클릭 시 이동할 경로
+            );
+        }
+    }
+    private String getLevelName(int level) {
+        String[] names = {"입문자", "먼지 먹는 하마", "편의점 미슐랭", "배달 앱 VVIP",
+                "우리 동네 반장님", "빨래 건조대 수호자", "프로 자취 연금술사",
+                "당근 온도 99도", "지박령", "자취방 만렙 교수", "StackFlov 성주"};
+        if (level >= names.length) return names[names.length - 1];
+        return names[level];
     }
 }

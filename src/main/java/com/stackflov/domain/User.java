@@ -108,11 +108,11 @@ public class User {
         this.addressDetail = addressDetail;
     }
 
-    public void addExp(int amount) {
+    public boolean addExp(int amount) {
         this.exp += amount;
-        checkLevelUp();
+        return checkLevelUp();
     }
-    private void checkLevelUp() {
+    private boolean checkLevelUp() {
         // 예시 공식: 레벨 * 100의 경험치를 채우면 레벨업
         // $EXP \geq Level \times 100$
         int requiredExp = this.level * 100;
@@ -120,8 +120,12 @@ public class User {
         if (this.exp >= requiredExp) {
             this.exp -= requiredExp; // 남은 경험치 이월
             this.level++;
+            return true;
         }
+        return false;
     }
+
+
     public void setLevel(int level){this.level = level;}
     public void setExp(int exp){this.exp = exp;}
 }
