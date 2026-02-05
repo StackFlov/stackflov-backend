@@ -6,5 +6,6 @@ public enum NotificationType {
     FOLLOW,    // 나를 팔로우
     REPORT ,    // 내가 접수한 신고 처리 결과
     MENTION,
-    SYSTEM
+    SYSTEM,
+    LEVELUP
 }

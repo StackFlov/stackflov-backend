@@ -420,8 +420,29 @@ public class AdminService {
     public void updateUserLevelExp(Long userId, LevelExpRequestDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        int oldLevel = user.getLevel(); // 이전 레벨 저장 (비교용)
         user.setLevel(dto.getLevel());
         user.setExp(dto.getExp());
+
+        // ✅ 관리자가 레벨을 수정했을 때 알림 발송 로직 추가
+        // 레벨이 상승하거나 변경되었을 때만 알림을 보내는 것이 좋습니다.
+        String levelName = getLevelName(dto.getLevel());
+        notificationService.notify(
+                user,
+                NotificationType.LEVELUP, // 유저님이 정하신 LEVELUP 타입 사용
+                "관리자에 의해 등급이 [" + levelName + "]로 조정되었습니다.",
+                "/mypage" // 클릭 시 이동할 경로
+        );
+    }
+
+    private String getLevelName(int level) {
+        String[] names = {"입문자", "먼지 먹는 하마", "편의점 미슐랭", "배달 앱 VVIP",
+                "우리 동네 반장님", "빨래 건조대 수호자", "프로 자취 연금술사",
+                "당근 온도 99도", "지박령", "자취방 만렙 교수", "StackFlov 성주"};
+        if (level < 0) return names[0];
+        if (level >= names.length) return names[names.length - 1];
+        return names[level];
     }
 
 }
