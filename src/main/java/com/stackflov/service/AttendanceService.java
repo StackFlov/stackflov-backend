@@ -6,6 +6,7 @@ import com.stackflov.domain.User;
 import com.stackflov.repository.AttendanceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final NotificationService notificationService;
 
+    @Async
     @Transactional
     public String checkIn(User user) {
         LocalDateTime now = LocalDateTime.now();
