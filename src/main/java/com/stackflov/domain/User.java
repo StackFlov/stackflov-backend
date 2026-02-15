@@ -65,10 +65,13 @@ public class User {
 
     private LocalDateTime suspensionEndDate;
 
-    private String addressDetail; // 추가
+    private String addressDetail;
 
     @Column(nullable = false)
-    private boolean agreement;    // 추가
+    private boolean agreement;
+
+    @Column(name = "last_password_changed_at")
+    private LocalDateTime lastPasswordChangedAt;
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
