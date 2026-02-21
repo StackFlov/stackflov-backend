@@ -30,6 +30,7 @@ public class BoardService {
     private final MentionService mentionService;
     private final HashtagService hashtagService;
     private final BoardHashtagRepository boardHashtagRepository;
+    private final ItemFeatureSyncService itemFeatureSyncService;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -250,7 +251,6 @@ public class BoardService {
                         .build());
     }
 
-    // ✅ 생성
     @Transactional
     public Long createBoardWithFiles(String email, BoardCreateRequestDto data, List<MultipartFile> images) {
         User user = userService.getValidUserByEmail(email);
@@ -285,8 +285,20 @@ public class BoardService {
         }
 
         Board saved = boardRepository.save(board);
+
+        // ✅ (추가) 해시태그 문자열만 미리 추출해둠 (processHashtags가 void여도 OK)
+        List<String> tags = hashtagService.extractHashtags(data.getContent());
+
         mentionService.processMentions(user, data.getContent(), saved, null);
         hashtagService.processHashtags(data.getContent(), saved);
+
+        // ✅ (추가) Step 4-6: item_feature 동기화는 여기!
+        itemFeatureSyncService.syncBoardFeatures(
+                saved.getId(),
+                saved.getCategory(),
+                user.getId(),
+                tags
+        );
 
         return saved.getId();
     }

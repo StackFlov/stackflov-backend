@@ -9,8 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,5 +49,24 @@ public class HashtagService {
             BoardHashtag boardHashtag = BoardHashtag.builder().board(board).hashtag(hashtag).build();
             boardHashtagRepository.save(boardHashtag);
         }
+    }
+
+    public List<String> extractHashtags(String content) {
+        if (content == null || content.isBlank()) return List.of();
+
+        // # 뒤에 한글/영문/숫자/언더스코어 정도를 해시태그로 인정
+        Pattern p = Pattern.compile("#([\\p{L}\\p{N}_]{1,30})");
+        Matcher m = p.matcher(content);
+
+        LinkedHashSet<String> tags = new LinkedHashSet<>();
+        while (m.find()) {
+            String tag = m.group(1);
+            if (tag == null) continue;
+            tag = tag.trim();
+            if (tag.isEmpty()) continue;
+            tags.add(tag);
+            if (tags.size() >= 30) break;
+        }
+        return new ArrayList<>(tags);
     }
 }
