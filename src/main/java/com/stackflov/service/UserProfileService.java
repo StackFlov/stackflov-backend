@@ -45,7 +45,7 @@ public class UserProfileService {
 
         // 이벤트에 등장한 boardId들
         List<Long> boardIds = events.stream()
-                .map(UserEvent::getItemId)
+                .map(UserEvent::getBoardId)
                 .distinct()
                 .toList();
 
@@ -62,7 +62,7 @@ public class UserProfileService {
             double wEvent = eventWeight(e);
             double decay = timeDecay(today, e.getCreatedAt().toLocalDate());
 
-            List<ItemFeature> feats = featuresByBoard.getOrDefault(e.getItemId(), List.of());
+            List<ItemFeature> feats = featuresByBoard.getOrDefault(e.getBoardId(), List.of());
             for (ItemFeature f : feats) {
                 String key = f.getId().getFeatureType() + "|" + f.getId().getFeatureValue();
                 double add = wEvent * decay * f.getWeight();
