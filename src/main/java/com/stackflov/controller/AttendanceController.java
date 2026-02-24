@@ -1,4 +1,3 @@
-/*
 package com.stackflov.controller;
 
 import com.stackflov.config.CustomUserPrincipal; // ✅ 커스텀 클래스 임포트
@@ -37,4 +36,3 @@ public class AttendanceController {
         }
     }
 }
-*/
