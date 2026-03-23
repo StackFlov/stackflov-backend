@@ -46,6 +46,7 @@ public class MapService {
                 .address(dto.getAddress())     // ✅ 여기
                 .content(dto.getContent())
                 .rating(dto.getRating())
+                .category(dto.getCategory())
                 .build();
 
         Review savedReview = reviewRepository.save(review);

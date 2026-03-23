@@ -1,5 +1,6 @@
 package com.stackflov.dto;
 
+import com.stackflov.domain.ReviewCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,8 @@ public class ReviewRequestDto {
 
     @Schema(description = "평점(1~5 정수)", example = "4", minimum = "1", maximum = "5")
     private int rating;
+
+    private ReviewCategory category;
 
     private List<MultipartFile> images;
 }
