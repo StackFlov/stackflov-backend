@@ -143,7 +143,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/map/reviews/**").authenticated() // 리뷰 수정
                         .requestMatchers(HttpMethod.DELETE, "/map/reviews/**").authenticated() // 리뷰 삭제
                         .requestMatchers(HttpMethod.POST, "/notifications/**").authenticated() // 알림 읽음 처리 등
-                        .requestMatchers(HttpMethod.POST,"/check-in").authenticated() //출석체크
+                        .requestMatchers(HttpMethod.POST,"/attendance/check-in").authenticated() //출석체크
                         
                         .requestMatchers(HttpMethod.GET, "/notices/**").permitAll()
                         .requestMatchers("/admin/notices/**").hasRole("ADMIN")
