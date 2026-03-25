@@ -19,7 +19,6 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final NotificationService notificationService;
 
-    @Async
     @Transactional
     public String checkIn(User user) {
         LocalDateTime now = LocalDateTime.now();
