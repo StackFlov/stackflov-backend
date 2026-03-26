@@ -65,13 +65,25 @@ public class AttendanceService {
         attendance.setEarnedExp(earnedExp);
         attendanceRepository.save(attendance);
 
-        // 5. 알림 전송
+        /*
         notificationService.notify(
                 user,
                 NotificationType.SYSTEM,
                 continuousDays + "일 연속 출석 성공! " + earnedExp + "XP를 획득했습니다." + bonusMsg,
                 "/mypage"
-        );
+        );*/
+
+        try {
+            notificationService.notify(
+                    user,
+                    NotificationType.SYSTEM,
+                    continuousDays + "일 연속 출석 성공! " + earnedExp + "XP를 획득했습니다." + bonusMsg,
+                    "/mypage"
+            );
+        } catch (Exception e) {
+            // 알림 저장이나 소켓 전송에 실패해도 로그만 남기고 출석체크는 그대로 진행합니다.
+            System.err.println("알림 발송 실패(출석은 정상 처리): " + e.getMessage());
+        }
 
         return continuousDays + "일 연속 출석! " + earnedExp + "XP 획득";
     }
