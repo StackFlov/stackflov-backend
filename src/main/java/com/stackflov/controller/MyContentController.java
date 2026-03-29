@@ -49,4 +49,11 @@ public class MyContentController {
             @AuthenticationPrincipal CustomUserPrincipal principal, Pageable pageable) {
         return ResponseEntity.ok(myContentService.getMyReviewComments(principal.getEmail(), pageable));
     }
+
+    @Operation(summary = "내 모든 댓글 목록", description = "게시글과 리뷰에 남긴 모든 댓글을 통합 조회합니다.")
+    @GetMapping("/comments/all")
+    public ResponseEntity<Page<CommentResponseDto>> getMyAllComments(
+            @AuthenticationPrincipal CustomUserPrincipal principal, Pageable pageable) {
+        return ResponseEntity.ok(myContentService.getMyAllComments(principal.getEmail(), pageable));
+    }
 }

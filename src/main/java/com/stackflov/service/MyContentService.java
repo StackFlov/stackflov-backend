@@ -74,4 +74,20 @@ public class MyContentService {
                         .build()
                 );
     }
+
+    public Page<CommentResponseDto> getMyAllComments(String email, Pageable pageable) {
+        User user = getUserByEmail(email);
+        return commentRepository.findAllMyActiveComments(user, pageable)
+                .map(c -> CommentResponseDto.builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .authorId(c.getUser().getId())
+                        .authorNickname(c.getUser().getNickname())
+                        .authorEmail(c.getUser().getEmail())
+                        .boardId(c.getBoard() != null ? c.getBoard().getId() : null)   // 자취로그 ID
+                        .reviewId(c.getReview() != null ? c.getReview().getId() : null) // 니방내방 ID
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build());
+    }
 }

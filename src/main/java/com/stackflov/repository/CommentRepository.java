@@ -51,4 +51,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("update Comment c set c.active = false " +
             "where c.review.id = :reviewId and c.active = true")
     int bulkDeactivateByReviewId(@Param("reviewId") Long reviewId);
+
+    @Query("SELECT c FROM Comment c WHERE c.user = :user AND c.active = true " +
+            "AND ((c.board IS NOT NULL AND c.board.active = true) OR (c.review IS NOT NULL AND c.review.active = true))")
+    Page<Comment> findAllMyActiveComments(@Param("user") User user, Pageable pageable);
 }
