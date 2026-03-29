@@ -119,15 +119,17 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
         return commentRepository.findByBoardIdAndActiveTrue(boardId).stream()
-                .map(comment -> new CommentResponseDto(
-                        comment.getId(),
-                        comment.getContent(),
-                        comment.getUser().getId(),        // ✅ 추가: 작성자 ID
-                        comment.getUser().getNickname(),
-                        comment.getUser().getEmail(),
-                        comment.getCreatedAt(),
-                        comment.getUpdatedAt()
-                ))
+                .map(c -> CommentResponseDto.builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .authorId(c.getUser().getId())
+                        .authorNickname(c.getUser().getNickname())
+                        .authorEmail(c.getUser().getEmail())
+                        .boardId(c.getBoard() != null ? c.getBoard().getId() : null)
+                        .reviewId(c.getReview() != null ? c.getReview().getId() : null)
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build())
                 .collect(Collectors.toList());
     }
 
@@ -169,15 +171,17 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
 
         return commentRepository.findByReviewIdAndActiveTrue(reviewId).stream()
-                .map(comment -> new CommentResponseDto(
-                        comment.getId(),
-                        comment.getContent(),
-                        comment.getUser().getId(),
-                        comment.getUser().getNickname(),
-                        comment.getUser().getEmail(),
-                        comment.getCreatedAt(),
-                        comment.getUpdatedAt()
-                ))
+                .map(c -> CommentResponseDto.builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .authorId(c.getUser().getId())
+                        .authorNickname(c.getUser().getNickname())
+                        .authorEmail(c.getUser().getEmail())
+                        .boardId(c.getBoard() != null ? c.getBoard().getId() : null)
+                        .reviewId(c.getReview() != null ? c.getReview().getId() : null)
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build())
                 .collect(Collectors.toList());
     }
 }

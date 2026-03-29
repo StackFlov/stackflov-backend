@@ -38,19 +38,40 @@ public class MyContentService {
                 .map(ReviewResponseDto::new);
     }
 
+
     public Page<CommentResponseDto> getMyBoardComments(String email, Pageable pageable) {
         User user = getUserByEmail(email);
         // ⬇️ 내 댓글 + 댓글 active=true + 대상(Board) active=true
         return commentRepository.findActiveByUserOnBoards(user, pageable)
-                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getId(),        // ✅ 추가: authorId
-                        c.getUser().getNickname(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
+                .map(c -> CommentResponseDto.builder()
+                                .id(c.getId())
+                                .content(c.getContent())
+                                .authorId(c.getUser().getId())
+                                .authorNickname(c.getUser().getNickname()) // 추가
+                                .authorEmail(c.getUser().getEmail())       // 추가
+                                .boardId(c.getBoard() != null ? c.getBoard().getId() : null)
+                                .reviewId(c.getReview() != null ? c.getReview().getId() : null)
+                                .createdAt(c.getCreatedAt())               // 추가
+                                .updatedAt(c.getUpdatedAt())
+                        .build()
+                );
     }
 
     public Page<CommentResponseDto> getMyReviewComments(String email, Pageable pageable) {
         User user = getUserByEmail(email);
         // ⬇️ 내 댓글 + 댓글 active=true + 대상(Review) active=true
         return commentRepository.findActiveByUserOnReviews(user, pageable)
-                .map(c -> new CommentResponseDto(c.getId(), c.getContent(), c.getUser().getId(),        // ✅ 추가: authorId
-                        c.getUser().getNickname(), c.getUser().getEmail(), c.getCreatedAt(), c.getUpdatedAt()));
+                .map(c -> CommentResponseDto.builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .authorId(c.getUser().getId())
+                        .authorEmail(c.getUser().getEmail())
+                        .authorNickname(c.getUser().getNickname())
+                        .boardId(c.getBoard() != null ? c.getBoard().getId() : null)
+                        .reviewId(c.getReview() != null ? c.getReview().getId() : null)
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build()
+                );
     }
 }

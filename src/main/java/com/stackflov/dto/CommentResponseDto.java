@@ -1,9 +1,6 @@
 package com.stackflov.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -11,12 +8,17 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CommentResponseDto {
     private Long id;
     private String content;
     private Long authorId;
     private String authorNickname;
     private String authorEmail;
+
+    private Long boardId;
+    private Long reviewId;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
