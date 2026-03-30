@@ -29,4 +29,5 @@ public class ReviewDetailResponseDto {
 
     private long likeCount;
     private boolean isLiked;
+    private boolean isBookmarked;
 }

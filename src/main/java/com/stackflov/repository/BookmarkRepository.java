@@ -2,6 +2,7 @@ package com.stackflov.repository;
 
 import com.stackflov.domain.Board;
 import com.stackflov.domain.Bookmark;
+import com.stackflov.domain.Review;
 import com.stackflov.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -19,4 +20,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     List<Bookmark> findByUserAndActiveTrue(User user);
 
     boolean existsByUserAndBoardAndActiveTrue(User user, Board board);
+
+    boolean existsByUserAndReviewAndActiveTrue(User user, Review review);
 }

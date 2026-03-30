@@ -28,6 +28,7 @@ public class MapService {
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
@@ -254,6 +255,10 @@ public class MapService {
                 .map(u -> likeRepository.findByUserAndReviewAndActiveTrue(u, review).isPresent())
                 .orElse(false);
 
+        boolean isBookmarked = (email != null) && userRepository.findByEmail(email)
+                .map(u -> bookmarkRepository.existsByUserAndReviewAndActiveTrue(u, review))
+                .orElse(false);
+
         return ReviewDetailResponseDto.builder()
                 .id(review.getId())
                 .title(review.getTitle())
@@ -267,6 +272,7 @@ public class MapService {
                 .imageUrls(imageUrls)
                 .likeCount(likeCount)
                 .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();
