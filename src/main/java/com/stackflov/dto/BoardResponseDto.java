@@ -26,5 +26,6 @@ public class BoardResponseDto {
     private String authorProfileImageUrl;
     private long likeCount;
     private boolean isLiked;
+    private boolean isBookmarked;
     private List<String> hashtags;
 }

@@ -48,6 +48,10 @@ public class BoardService {
                 .map(user -> likeRepository.existsByUserAndBoardAndActiveTrue(user, board))
                 .orElse(false);
 
+        boolean isBookmarked = userRepository.findByEmail(email)
+                .map(user -> bookmarkRepository.existsByUserAndBoardAndActiveTrue(user, board))
+                .orElse(false);
+
         List<String> imageUrls = board.getImages().stream()
                 .filter(BoardImage::isActive)
                 .sorted(Comparator.comparing(i -> i.getSortOrder() == null ? Integer.MAX_VALUE : i.getSortOrder()))
@@ -75,6 +79,7 @@ public class BoardService {
                 .updatedAt(board.getUpdatedAt())
                 .likeCount(likeRepository.countByBoardAndActiveTrue(board))
                 .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .authorProfileImageUrl(authorProfileImageUrl)
                 .hashtags(hashtags)
                 .build();

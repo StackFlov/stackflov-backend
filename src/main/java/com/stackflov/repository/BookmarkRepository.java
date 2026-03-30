@@ -16,9 +16,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     List<Bookmark> findByBoard(Board board);
 
-    void deleteByUserAndBoard(User user, Board board);
-
-    // ⬇ 소프트 삭제 대응 (활성 기준)
-    Optional<Bookmark> findByUserAndBoardAndActiveTrue(User user, Board board);
     List<Bookmark> findByUserAndActiveTrue(User user);
+
+    boolean existsByUserAndBoardAndActiveTrue(User user, Board board);
 }
