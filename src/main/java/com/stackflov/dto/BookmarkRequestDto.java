@@ -9,4 +9,7 @@ public class BookmarkRequestDto {
     private Long boardId; // 북마크할 게시글 ID
     private Long reviewId;
     // private Long userId; // 사용자 ID는 JWT 토큰에서 가져오므로 DTO에 포함하지 않음
+
+    public boolean isBoardBookmark() { return boardId != null; }
+    public boolean isReviewBookmark() { return reviewId != null; }
 }

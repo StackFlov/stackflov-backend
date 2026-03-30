@@ -26,8 +26,12 @@ public class Bookmark {
     private User user; // 북마크를 한 사용자
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board; // 북마크된 게시판
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    private Review review;
 
     @CreationTimestamp
     private LocalDateTime createdAt; // 북마크 생성 일시
