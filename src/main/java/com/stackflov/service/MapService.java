@@ -128,6 +128,7 @@ public class MapService {
         // 1) 대상 리뷰 + 권한 확인
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
         if (review.getAuthor() == null
                 || review.getAuthor().getEmail() == null
                 || !review.getAuthor().getEmail().equalsIgnoreCase(userEmail)) {
@@ -161,18 +162,23 @@ public class MapService {
             }
         }
 
-        // 4) 새 이미지 추가
         if (images != null && !images.isEmpty()) {
-            long order = reviewImageRepository.countByReviewId(reviewId);
+            List<ReviewImage> newReviewImages = new ArrayList<>();
+
             for (MultipartFile file : images) {
                 if (file == null || file.isEmpty()) continue;
-                String key = s3Service.upload(file, "images/"); // S3 key
-                String url = s3Service.publicUrl(key);                      // CDN 도메인 우선
-                reviewImageRepository.save(new ReviewImage(review, url)); // 엔티티에 맞게
+
+                String key = s3Service.upload(file, "images/");
+                String url = s3Service.publicUrl(key);
+
+
+                newReviewImages.add(new ReviewImage(review, url));
+            }
+
+            if (!newReviewImages.isEmpty()) {
+                reviewImageRepository.saveAll(newReviewImages);
             }
         }
-
-        // JPA dirty checking으로 커밋 시 반영
     }
     @Transactional
     public void deleteReview(Long reviewId, String userEmail) {
