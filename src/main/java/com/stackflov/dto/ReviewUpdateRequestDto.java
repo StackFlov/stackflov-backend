@@ -27,7 +27,7 @@ public class ReviewUpdateRequestDto {
 
     @Schema(description = "삭제할 기존 이미지 ID 목록", example = "[3,7,8]")
     @JsonProperty("imageIdsToDelete")
-    @JsonAlias({"deleteImageIds", "image_ids_to_delete"})
+    @JsonAlias({"deleteImageIds", "image_ids_to_delete","deleteImageUrls"})
     private List<Long> deleteImageIds;
 
     @Schema(description = "기존 이미지를 전부 교체할지 (true면 기존 전부 삭제 후 새 이미지로 대체)")
