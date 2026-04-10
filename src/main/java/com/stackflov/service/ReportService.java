@@ -2,6 +2,8 @@ package com.stackflov.service;
 
 import com.stackflov.domain.*;
 import com.stackflov.dto.ReportRequestDto;
+import com.stackflov.exception.DuplicateReportException;
+import com.stackflov.exception.SelfReportNotAllowedException;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -42,14 +44,14 @@ public class ReportService {
         // 1) 대상 존재 & 활성 체크 + 자기 신고 차단
         final TargetRef target = loadActiveTargetOrThrow(dto.getContentId(), dto.getContentType());
         if (target.authorId() != null && target.authorId().equals(reporter.getId())) {
-            throw new IllegalArgumentException(MSG_SELF_REPORT_BLOCKED);
+            throw new SelfReportNotAllowedException(MSG_SELF_REPORT_BLOCKED);
         }
 
         // 2) 애플리케이션 레벨 중복 차단 (빠른 경로)
         final boolean already = reportRepository
                 .existsByReporterAndContentIdAndContentType(reporter, dto.getContentId(), dto.getContentType());
         if (already) {
-            throw new IllegalStateException(MSG_DUP_REPORT);
+            throw new DuplicateReportException(MSG_DUP_REPORT);
         }
 
         // 3) 입력 정리
@@ -68,7 +70,7 @@ public class ReportService {
         try {
             reportRepository.save(report);
         } catch (DataIntegrityViolationException dup) {
-            throw new IllegalStateException(MSG_DUP_REPORT);
+            throw new DuplicateReportException(MSG_DUP_REPORT);
         }
     }
 
