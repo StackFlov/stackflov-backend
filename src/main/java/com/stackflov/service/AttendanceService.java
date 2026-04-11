@@ -65,14 +65,6 @@ public class AttendanceService {
         attendance.setEarnedExp(earnedExp);
         attendanceRepository.save(attendance);
 
-        /*
-        notificationService.notify(
-                user,
-                NotificationType.SYSTEM,
-                continuousDays + "일 연속 출석 성공! " + earnedExp + "XP를 획득했습니다." + bonusMsg,
-                "/mypage"
-        );*/
-
         try {
             notificationService.notify(
                     user,

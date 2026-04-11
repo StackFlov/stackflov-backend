@@ -56,7 +56,7 @@ public class CommentService {
                         board.getAuthor(),
                         NotificationType.COMMENT,
                         user.getNickname() + "님이 회원님의 글에 댓글을 남겼습니다.",
-                        "/boards/" + board.getId()          // ✅ 그대로
+                        "/trace/detail/" + board.getId()
                 );
             }
 
@@ -71,8 +71,7 @@ public class CommentService {
                         review.getAuthor(),
                         NotificationType.COMMENT,             // 원하면 REVIEW_COMMENT로 분리
                         user.getNickname() + "님이 회원님의 리뷰에 댓글을 남겼습니다.",
-                        "/reviews/" + review.getId()          // ✅ Location 제거에 맞게 수정
-                        //  예: 프론트 라우트가 /map/reviews/:id 라면 여기를 맞춰주세요.
+                        "/map/reviews/" + review.getId()
                 );
             }
         }

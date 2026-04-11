@@ -35,13 +35,12 @@ public class LikeService {
                 Like like = existing.get();
                 if (like.isActive()) throw new IllegalArgumentException("이미 좋아요를 누른 게시글입니다.");
                 like.activate();
-                // 알림 (본인 글 제외)
                 if (!board.getAuthor().getId().equals(user.getId())) {
                     notificationService.notify(
                             board.getAuthor(),
                             NotificationType.LIKE,
                             user.getNickname() + "님이 \"" + board.getTitle() + "\"를 좋아합니다.",
-                            "/boards/" + board.getId()
+                            "/trace/detail/" + board.getId()
                     );
                 }
                 return;
@@ -53,7 +52,7 @@ public class LikeService {
                         board.getAuthor(),
                         NotificationType.LIKE,
                         user.getNickname() + "님이 \"" + board.getTitle() + "\"를 좋아합니다.",
-                        "/boards/" + board.getId()
+                        "/trace/detail/" + board.getId()
                 );
             }
             return;
@@ -73,7 +72,6 @@ public class LikeService {
                         review.getAuthor(),
                         NotificationType.LIKE,
                         user.getNickname() + "님이 리뷰 \"" + review.getTitle() + "\"를 좋아합니다.",
-                        // TODO: 실제 프론트 라우팅에 맞춰 수정
                         "/map/reviews/" + review.getId()
                 );
             }
