@@ -246,7 +246,7 @@ public class UserService {
                     user,
                     NotificationType.SYSTEM, // 또는 별도의 LEVEL_UP 타입 추가
                     message,
-                    "/mypage" // 클릭 시 이동할 경로
+                    "/profile" // 클릭 시 이동할 경로
             );
         }
     }

@@ -53,7 +53,7 @@ public class MentionService {
 
                 // 멘션된 사용자에게 알림 보내기
                 String message = mentioner.getNickname() + "님이 회원님을 언급했습니다.";
-                String link = (board != null) ? "/trace/detail/" + board.getId() : "/reviews/" + comment.getReview().getId();;
+                String link = (board != null) ? "/trace/detail/" + board.getId() : "/nibangnebang/" + comment.getReview().getId();;
                 notificationService.notify(mentionedUser, NotificationType.MENTION, message, link);
             });
         }

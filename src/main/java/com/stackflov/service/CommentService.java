@@ -71,7 +71,7 @@ public class CommentService {
                         review.getAuthor(),
                         NotificationType.COMMENT,             // 원하면 REVIEW_COMMENT로 분리
                         user.getNickname() + "님이 회원님의 리뷰에 댓글을 남겼습니다.",
-                        "/map/reviews/" + review.getId()
+                        "/nibangnebang/" + review.getId()
                 );
             }
         }

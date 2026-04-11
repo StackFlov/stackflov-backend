@@ -72,7 +72,7 @@ public class LikeService {
                         review.getAuthor(),
                         NotificationType.LIKE,
                         user.getNickname() + "님이 리뷰 \"" + review.getTitle() + "\"를 좋아합니다.",
-                        "/map/reviews/" + review.getId()
+                        "/nibangnebang/" + review.getId()
                 );
             }
             return;
