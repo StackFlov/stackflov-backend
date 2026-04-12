@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Notifications", description = "알림 조회 및 읽음 처리 API")
 @RestController
 @RequestMapping("/notifications")
@@ -62,5 +64,14 @@ public class NotificationController {
 
         notificationService.deleteNotification(principal.getEmail(), notificationId);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<Void> deleteSelected(
+            @RequestBody List<Long> notificationIds,
+            @AuthenticationPrincipal CustomUserPrincipal principal){
+
+        notificationService.deleteSelectedNotifications(principal.getEmail(), notificationIds);
+        return ResponseEntity.noContent().build();
     }
 }

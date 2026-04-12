@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -86,5 +88,18 @@ public class NotificationService {
         }
 
         notificationRepository.delete(n);
+    }
+
+    @Transactional
+    public void deleteSelectedNotifications(String email, List<Long> notificationIds) {
+        if (notificationIds == null || notificationIds.isEmpty()) {
+            return; // 삭제할 게 없으면 바로 종료
+        }
+
+        User me = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 내가 주인인 알림들만 골라서 삭제 (Repository 쿼리 호출)
+        notificationRepository.deleteAllByIdInAndReceiver(notificationIds, me);
     }
 }

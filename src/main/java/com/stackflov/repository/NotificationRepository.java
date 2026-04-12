@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     Page<Notification> findByReceiverOrderByCreatedAtDesc(User receiver, Pageable pageable);
@@ -21,4 +23,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void deleteAllByReceiver(User receiver);
 
     void deleteByIdAndReceiver(Long id, User receiver);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Notification n WHERE n.id IN :ids AND n.receiver = :receiver")
+    void deleteAllByIdInAndReceiver(List<Long> ids, User receiver);
 }
