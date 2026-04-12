@@ -64,4 +64,12 @@ public class NotificationService {
         notificationRepository.findByReceiverOrderByCreatedAtDesc(me, Pageable.unpaged())
                 .forEach(n -> { if (!n.isRead()) n.markRead(); });
     }
+
+    @Transactional
+    public void deleteAllNotifications(String email){
+        User me = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 비활성화된 사용자입니다."));
+
+        notificationRepository.deleteAllByReceiver(me);
+    }
 }

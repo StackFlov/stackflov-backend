@@ -47,4 +47,10 @@ public class NotificationController {
         notificationService.markAllRead(principal.getEmail());
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAll(@AuthenticationPrincipal CustomUserPrincipal principal) {
+        notificationService.deleteAllNotifications(principal.getEmail());
+        return ResponseEntity.noContent().build();
+    }
 }
