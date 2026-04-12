@@ -53,4 +53,14 @@ public class NotificationController {
         notificationService.deleteAllNotifications(principal.getEmail());
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "알림 단일 삭제", description = "지정한 알림 ID 하나를 삭제합니다.")
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<Void> deleteOne(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
+
+        notificationService.deleteNotification(principal.getEmail(), notificationId);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
 }

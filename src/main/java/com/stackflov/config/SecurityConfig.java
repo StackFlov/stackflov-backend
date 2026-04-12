@@ -138,7 +138,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/comments/review/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/map/locations").authenticated() // 위치 생성
-                        //.requestMatchers(HttpMethod.POST, "/map/locations/**/reviews").authenticated() // 리뷰 생성
+                        .requestMatchers(HttpMethod.POST, "/map/locations/**/reviews").authenticated() // 리뷰 생성
                         .requestMatchers(HttpMethod.POST, "/map/locations/{locationId}/reviews").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/map/reviews/**").authenticated() // 리뷰 수정
                         .requestMatchers(HttpMethod.DELETE, "/map/reviews/**").authenticated() // 리뷰 삭제

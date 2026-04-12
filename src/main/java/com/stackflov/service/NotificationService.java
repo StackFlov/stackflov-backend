@@ -72,4 +72,19 @@ public class NotificationService {
 
         notificationRepository.deleteAllByReceiver(me);
     }
+
+    @Transactional
+    public void deleteNotification(String email, Long notificationId) {
+        User me = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Notification n = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 알림이 존재하지 않습니다."));
+
+        if (!n.getReceiver().getId().equals(me.getId())) {
+            throw new IllegalArgumentException("본인의 알림만 삭제할 수 있습니다.");
+        }
+
+        notificationRepository.delete(n);
+    }
 }

@@ -14,8 +14,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Page<Notification> findByReceiverOrderByCreatedAtDesc(User receiver, Pageable pageable);
 
     long countByReceiverAndIsReadFalse(User receiver);
+
     @Modifying
     @Transactional
     @Query("DELETE FROM Notification n WHERE n.receiver = :receiver")
     void deleteAllByReceiver(User receiver);
+
+    void deleteByIdAndReceiver(Long id, User receiver);
 }
