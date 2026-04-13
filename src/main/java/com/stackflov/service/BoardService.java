@@ -96,7 +96,7 @@ public class BoardService {
         if (userEmail != null) {
             currentUser = userRepository.findByEmail(userEmail).orElse(null);
             if (currentUser != null) {
-                bookmarkRepository.findByUserAndActiveTrue(currentUser)
+                bookmarkRepository.findByUser(currentUser)
                         .forEach(b -> bookmarkedBoardIds.add(b.getBoard().getId()));
             }
         }
