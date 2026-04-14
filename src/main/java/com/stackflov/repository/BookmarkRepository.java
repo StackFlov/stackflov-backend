@@ -22,4 +22,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     boolean existsByUserAndBoardAndActiveTrue(User user, Board board);
 
     boolean existsByUserAndReviewAndActiveTrue(User user, Review review);
+
+    Optional<Bookmark> findByUserAndReview(User user, Review review);
+
+    long countByReview(Review review);
 }

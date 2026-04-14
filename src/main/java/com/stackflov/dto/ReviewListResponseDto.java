@@ -24,6 +24,7 @@ public class ReviewListResponseDto {
     private Integer likeCount;            // 없으면 0으로 세팅
     private Boolean mine;                 // 요청자 == 작성자
     private Boolean isLike;
+    private Boolean isBookmarked;
     private LocalDateTime createdAt;
     private List<String> imageUrls;
 
@@ -32,7 +33,8 @@ public class ReviewListResponseDto {
             @org.springframework.lang.Nullable String requesterEmail,
             boolean isLike,
             int likeCount,
-            List<String> imageUrls // ✅ 이 5번째 인자가 추가되어야 함
+            List<String> imageUrls,
+            boolean isBookmarked
     ) {
         boolean mine = requesterEmail != null
                 && r.getAuthor() != null
@@ -49,6 +51,7 @@ public class ReviewListResponseDto {
                 .likeCount(likeCount)                                             // 👍 좋아요 집계 없으면 0
                 .mine(mine)
                 .isLike(isLike)
+                .isBookmarked(isBookmarked)
                 .createdAt(r.getCreatedAt())
                 .imageUrls(imageUrls)
                 .build();

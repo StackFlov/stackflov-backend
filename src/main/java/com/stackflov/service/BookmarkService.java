@@ -70,11 +70,19 @@ public class BookmarkService {
     @Transactional
     public void removeBookmark(String userEmail, BookmarkRequestDto requestDto) {
         User user = userService.getValidUserByEmail(userEmail);
-        Board board = boardRepository.findById(requestDto.getBoardId())
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        Bookmark bookmark;
 
-        Bookmark bookmark = bookmarkRepository.findByUserAndBoard(user, board)
-                .orElseThrow(() -> new IllegalArgumentException("북마크를 찾을 수 없습니다."));
+        if (requestDto.isBoardBookmark()) {
+            Board board = boardRepository.findById(requestDto.getBoardId())
+                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+            bookmark = bookmarkRepository.findByUserAndBoard(user, board)
+                    .orElseThrow(() -> new IllegalArgumentException("북마크를 찾을 수 없습니다."));
+        }else {
+            Review review = reviewRepository.findById(requestDto.getReviewId())
+                    .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+            bookmark = bookmarkRepository.findByUserAndReview(user, review)
+                    .orElseThrow(() -> new IllegalArgumentException("북마크를 찾을 수 없습니다."));
+        }
 
         bookmarkRepository.delete(bookmark);
     }

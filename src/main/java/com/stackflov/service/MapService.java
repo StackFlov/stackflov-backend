@@ -75,16 +75,14 @@ public class MapService {
 
         List<Review> reviews = page.getContent();
 
-        // ✅ 1. Java 8 수정: List.of() -> Collections.emptyList()
         if (reviews.isEmpty()) {
             return page.map(r -> ReviewListResponseDto.from(
-                    r, requesterEmail, false, 0, Collections.emptyList() // 수정됨
+                    r, requesterEmail, false, 0, Collections.emptyList(),false
             ));
         }
 
         List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
 
-        // 1) 좋아요 수 집계 (...생략...)
         Map<Long, Integer> likeCountMap = likeRepository.countActiveLikesByReviewIds(reviewIds)
                 .stream()
                 .collect(Collectors.toMap(
@@ -92,8 +90,6 @@ public class MapService {
                         r -> r.getCnt().intValue()
                 ));
 
-        // 2) 내가 누른 리뷰 id 조회 (로그인 시에만)
-        // ✅ 2. Java 8 수정: List.of -> Collections::emptyList
         List<Long> likedIds = userRepository.findByEmail(requesterEmail)
                 .map(u -> likeRepository.findLikedReviewIds(u.getId(), reviewIds))
                 .orElseGet(Collections::emptyList); // 수정됨
@@ -104,18 +100,22 @@ public class MapService {
         final Set<Long> likedSetFinal = likedSet;
 
         return page.map(r -> {
-            // ✅ 3. Java 8 수정: List.of() -> Collections.emptyList()
-            List<String> imageUrls = r.getReviewImages() == null ? Collections.emptyList() // 수정됨
+            List<String> imageUrls = r.getReviewImages() == null ? Collections.emptyList()
                     : r.getReviewImages().stream()
                     .map(img -> s3Service.publicUrl(img.getImageUrl()))
                     .toList();
+
+            boolean isBookmarked = (requesterEmail != null) && userRepository.findByEmail(requesterEmail)
+                    .map(u -> bookmarkRepository.existsByUserAndReviewAndActiveTrue(u, r))
+                    .orElse(false);
 
             return ReviewListResponseDto.from(
                     r,
                     requesterEmail,
                     likedSetFinal.contains(r.getId()),
                     likeCountMapFinal.getOrDefault(r.getId(), 0),
-                    imageUrls
+                    imageUrls,
+                    isBookmarked
             );
         });
     }
@@ -285,12 +285,11 @@ public class MapService {
     }
 
     public List<ReviewListResponseDto> getReviewsByAuthor(User author, String requesterEmail) {
-        // ReviewRepository에서 findByAuthorAndActiveTrue 사용
         return reviewRepository.findByAuthorAndActiveTrue(author, PageRequest.of(0, 10)).getContent()
                 .stream()
                 .map(r -> {
                     // 기존 getReviews의 변환 로직 재사용
-                    return ReviewListResponseDto.from(r, requesterEmail, false, 0, Collections.emptyList());
+                    return ReviewListResponseDto.from(r, requesterEmail, false, 0, Collections.emptyList(),false);
                 })
                 .collect(Collectors.toList());
     }
