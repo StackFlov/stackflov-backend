@@ -191,9 +191,10 @@ public class UserService {
         ).stream().map(review -> ReviewListResponseDto.from(
                 review,
                 requesterEmail,
-                false, // 좋아요 여부 로직 필요 시 추가
-                0,     // 좋아요 카운트 로직 필요 시 추가
-                review.getReviewImages().stream().map(img -> s3Service.publicUrl(img.getImageUrl())).toList()
+                false,
+                0,
+                review.getReviewImages().stream().map(img -> s3Service.publicUrl(img.getImageUrl())).toList(),
+                false
         )).toList();
 
         // 4. 팔로우/팔로잉 리스트 (FollowService 활용)
