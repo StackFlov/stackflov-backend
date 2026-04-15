@@ -35,8 +35,7 @@ public class Review {
     @Column(nullable = false, length = 100)
     private String title;
 
-    // ✅ 주소를 직접 보관
-    @Column(length = 120)           // 필요 시 nullable=false 로
+    @Column(length = 120)
     private String address;
 
     @Lob

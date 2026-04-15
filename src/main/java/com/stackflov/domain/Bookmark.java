@@ -23,20 +23,19 @@ public class Bookmark {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 북마크를 한 사용자
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id")
-    private Board board; // 북마크된 게시판
+    @JoinColumn(name = "board_id", nullable = true)
+    private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id")
+    @JoinColumn(name = "review_id", nullable = true)
     private Review review;
 
     @CreationTimestamp
-    private LocalDateTime createdAt; // 북마크 생성 일시
+    private LocalDateTime createdAt;
 
-    // --- 아래 필드를 추가합니다 ---
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
