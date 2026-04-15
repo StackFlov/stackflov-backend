@@ -43,6 +43,7 @@ public class BookmarkService {
             bookmark = Bookmark.builder()
                     .user(user)
                     .board(board)
+                    .active(true)
                     .build();
 
         } else if (requestDto.isReviewBookmark()) {
@@ -57,6 +58,7 @@ public class BookmarkService {
             bookmark = Bookmark.builder()
                     .user(user)
                     .review(review)
+                    .active(true)
                     .build();
         }
         else {
