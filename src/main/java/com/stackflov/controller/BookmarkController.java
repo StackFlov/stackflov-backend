@@ -24,22 +24,32 @@ public class BookmarkController {
 
     @Operation(summary = "북마크 추가", description = "요청한 게시글을 내 북마크에 추가합니다.")
     @PostMapping
-    public ResponseEntity<BookmarkResponseDto> addBookmark(
+    public ResponseEntity<?> addBookmark(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody BookmarkRequestDto requestDto) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요한 서비스입니다.");
+        }
+
         try {
             BookmarkResponseDto response = bookmarkService.addBookmark(principal.getEmail(), requestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("서버 내부 오류가 발생했습니다.");
         }
     }
 
     @Operation(summary = "북마크 해제", description = "요청한 게시글을 내 북마크에서 제거합니다.")
     @DeleteMapping
-    public ResponseEntity<Void> removeBookmark(
+    public ResponseEntity<?> removeBookmark(
             @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody BookmarkRequestDto requestDto) {
+
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요한 서비스입니다.");
+        }
         try {
             bookmarkService.removeBookmark(principal.getEmail(), requestDto);
             return ResponseEntity.noContent().build();
