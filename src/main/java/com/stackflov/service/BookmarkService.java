@@ -35,7 +35,6 @@ public class BookmarkService {
             Board board = boardRepository.findById(requestDto.getBoardId())
                     .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-            // 중복 체크 (ExistsBy를 쓰면 더 빠릅니다)
             if (bookmarkRepository.existsByUserAndBoardAndActiveTrue(user, board)) {
                 throw new IllegalArgumentException("이미 북마크된 게시글입니다.");
             }
@@ -50,7 +49,6 @@ public class BookmarkService {
             Review review = reviewRepository.findById(requestDto.getReviewId())
                     .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
 
-            // 중복 체크
             if (bookmarkRepository.existsByUserAndReviewAndActiveTrue(user, review)) {
                 throw new IllegalArgumentException("이미 북마크된 리뷰입니다.");
             }
@@ -79,11 +77,14 @@ public class BookmarkService {
                     .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
             bookmark = bookmarkRepository.findByUserAndBoard(user, board)
                     .orElseThrow(() -> new IllegalArgumentException("북마크를 찾을 수 없습니다."));
-        }else {
+        }else if(requestDto.isReviewBookmark()){
             Review review = reviewRepository.findById(requestDto.getReviewId())
                     .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
             bookmark = bookmarkRepository.findByUserAndReview(user, review)
                     .orElseThrow(() -> new IllegalArgumentException("북마크를 찾을 수 없습니다."));
+        }
+        else {
+            throw new IllegalArgumentException("삭제할 북마크 대상이 지정되지 않았습니다.");
         }
 
         bookmarkRepository.delete(bookmark);
