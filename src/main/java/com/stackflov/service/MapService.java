@@ -69,16 +69,13 @@ public class MapService {
     }
 
 
-    public Page<ReviewListResponseDto> getReviews(Pageable pageable,
-                                                 @org.springframework.lang.Nullable String requesterEmail) {
+    @Transactional(readOnly = true)
+    public Page<ReviewListResponseDto> getReviews(Pageable pageable, @org.springframework.lang.Nullable String requesterEmail) {
         Page<Review> page = reviewRepository.findByActiveTrue(pageable);
-
         List<Review> reviews = page.getContent();
 
         if (reviews.isEmpty()) {
-            return page.map(r -> ReviewListResponseDto.from(
-                    r, requesterEmail, false, 0, Collections.emptyList(),false
-            ));
+            return page.map(r -> ReviewListResponseDto.from(r, requesterEmail, false, 0, Collections.emptyList(), false));
         }
 
         List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
@@ -90,32 +87,32 @@ public class MapService {
                         r -> r.getCnt().intValue()
                 ));
 
-        List<Long> likedIds = userRepository.findByEmail(requesterEmail)
-                .map(u -> likeRepository.findLikedReviewIds(u.getId(), reviewIds))
-                .orElseGet(Collections::emptyList); // 수정됨
+        Set<Long> likedSet = new HashSet<>();
+        Set<Long> bookmarkedSet = new HashSet<>();
 
-        Set<Long> likedSet = new HashSet<>(likedIds);
-
-        final Map<Long, Integer> likeCountMapFinal = likeCountMap;
-        final Set<Long> likedSetFinal = likedSet;
+        if (requesterEmail != null) {
+            userRepository.findByEmail(requesterEmail).ifPresent(user -> {
+                likedSet.addAll(likeRepository.findLikedReviewIds(user.getId(), reviewIds));
+                bookmarkedSet.addAll(bookmarkRepository.findByUser(user).stream()
+                        .filter(b -> b.getReview() != null && b.isActive())
+                        .map(b -> b.getReview().getId())
+                        .collect(Collectors.toSet()));
+            });
+        }
 
         return page.map(r -> {
-            List<String> imageUrls = r.getReviewImages() == null ? Collections.emptyList()
+            List<String> imageUrls = (r.getReviewImages() == null) ? Collections.emptyList()
                     : r.getReviewImages().stream()
                     .map(img -> s3Service.publicUrl(img.getImageUrl()))
                     .toList();
 
-            boolean isBookmarked = (requesterEmail != null) && userRepository.findByEmail(requesterEmail)
-                    .map(u -> bookmarkRepository.existsByUserAndReviewAndActiveTrue(u, r))
-                    .orElse(false);
-
             return ReviewListResponseDto.from(
                     r,
                     requesterEmail,
-                    likedSetFinal.contains(r.getId()),
-                    likeCountMapFinal.getOrDefault(r.getId(), 0),
+                    likedSet.contains(r.getId()),
+                    likeCountMap.getOrDefault(r.getId(), 0),
                     imageUrls,
-                    isBookmarked
+                    bookmarkedSet.contains(r.getId())
             );
         });
     }
