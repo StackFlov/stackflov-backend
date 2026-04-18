@@ -85,7 +85,6 @@ public class BoardService {
                 .build();
     }
 
-    // ✅ 게시글 목록 조회
     @Transactional(readOnly = true)
     public Page<BoardListResponseDto> getBoards(int page, int size, String userEmail) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -96,8 +95,11 @@ public class BoardService {
         if (userEmail != null) {
             currentUser = userRepository.findByEmail(userEmail).orElse(null);
             if (currentUser != null) {
-                bookmarkRepository.findByUser(currentUser)
-                        .forEach(b -> bookmarkedBoardIds.add(b.getBoard().getId()));
+                bookmarkRepository.findByUser(currentUser).forEach(b -> {
+                    if (b.getBoard() != null) {
+                        bookmarkedBoardIds.add(b.getBoard().getId());
+                    }
+                });
             }
         }
 
