@@ -4,6 +4,7 @@ import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardService {
@@ -47,6 +49,7 @@ public class BoardService {
         boolean isLiked = userRepository.findByEmail(email)
                 .map(user -> likeRepository.existsByUserAndBoardAndActiveTrue(user, board))
                 .orElse(false);
+        log.info("[DEBUG] getBoard 호출됨 - boardId: {}, email: {}", boardId, email);
 
         boolean isBookmarked = userRepository.findByEmail(email)
                 .map(user -> bookmarkRepository.existsByUserAndBoardAndActiveTrue(user, board))
