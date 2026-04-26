@@ -242,17 +242,16 @@ public class AdminService {
     }
 
     private User findReportedUser(Report report) {
-        if (report.getContentType() == ReportType.BOARD) {
-            return boardRepository.findById(report.getContentId())
-                    .orElseThrow(() -> new IllegalArgumentException("신고된 게시글을 찾을 수 없습니다."))
-                    .getAuthor();
-        } else if (report.getContentType() == ReportType.COMMENT) {
-            return commentRepository.findById(report.getContentId())
-                    .orElseThrow(() -> new IllegalArgumentException("신고된 댓글을 찾을 수 없습니다."))
-                    .getUser();
+        try {
+            return switch (report.getContentType()) {
+                case BOARD -> boardRepository.findById(report.getContentId()).map(Board::getAuthor).orElse(null);
+                case COMMENT -> commentRepository.findById(report.getContentId()).map(Comment::getUser).orElse(null);
+                case REVIEW -> reviewRepository.findById(report.getContentId()).map(Review::getAuthor).orElse(null);
+                default -> null;
+            };
+        } catch (Exception e) {
+            return null;
         }
-        // 이 외의 타입이 있다면 예외 처리
-        throw new IllegalArgumentException("지원하지 않는 신고 타입입니다.");
     }
 
     @Transactional
