@@ -43,7 +43,6 @@ public class BoardService {
         Board board = boardRepository.findByIdAndActiveTrue(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없거나 삭제되었습니다."));
 
-
         board.increaseViewCount();
 
         boolean isLiked = userRepository.findByEmail(email)

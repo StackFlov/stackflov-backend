@@ -74,8 +74,8 @@ public class AdminController {
     )
     @GetMapping("/reports/pending")
     public ResponseEntity<Page<AdminReportDto>> getPendingReports(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         Page<AdminReportDto> reports = adminService.getPendingReports(page, size);
         return ResponseEntity.ok(reports);
     }

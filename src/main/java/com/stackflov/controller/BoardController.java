@@ -38,9 +38,9 @@ public class BoardController {
     @GetMapping("/{boardId}")
     public ResponseEntity<BoardResponseDto> getBoard(
             @PathVariable Long boardId,
-            @RequestAttribute(value = "email", required = false) String email) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        BoardResponseDto response = boardService.getBoard(boardId, email);
+        BoardResponseDto response = boardService.getBoard(boardId, emailOf(principal));
         return ResponseEntity.ok(response);
     }
 
