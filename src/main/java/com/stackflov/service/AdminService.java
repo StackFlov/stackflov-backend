@@ -216,13 +216,17 @@ public class AdminService {
                 excerpt = cut(c.getContent(), 120);
             }
             case REVIEW -> {
-                Review r = reviewRepository.findById(report.getContentId())
-                        .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
-                reportedUser = r.getAuthor();
-                parentType = "REVIEW";
-                parentReviewId = r.getId(); // 의미상 부모=자기 자신
-                contentUrl = "/reviews/" + r.getId();
-                excerpt = cut(r.getContent(), 120);
+                Review r = reviewRepository.findById(report.getContentId()).orElse(null);
+                if (r != null) {
+                    reportedUser = r.getAuthor();
+                    parentType = "REVIEW";
+                    parentReviewId = r.getId();
+                    contentUrl = "/reviews/" + r.getId();
+                    excerpt = cut(r.getContent(), 120);
+                } else {
+                    excerpt = "(삭제된 리뷰입니다)";
+                    contentUrl = "#";
+                }
             }
             default -> { /* no-op */ }
         }
