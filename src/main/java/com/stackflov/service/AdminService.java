@@ -187,8 +187,7 @@ public class AdminService {
 
         switch (report.getContentType()) {
             case BOARD -> {
-                Board b = boardRepository.findById(report.getContentId())
-                        .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                Board b = boardRepository.findById(report.getContentId()).orElse(null);
                 reportedUser = b.getAuthor();
                 parentType = "BOARD";
                 parentBoardId = b.getId(); // 의미상 부모=자기 자신
@@ -196,8 +195,7 @@ public class AdminService {
                 excerpt = cut(b.getContent(), 120);
             }
             case COMMENT -> {
-                Comment c = commentRepository.findById(report.getContentId())
-                        .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                Comment c = commentRepository.findById(report.getContentId()).orElse(null);
                 reportedUser = c.getUser();
 
                 // (선택) 부모 라우팅/딥링크까지 만들고 싶다면:
