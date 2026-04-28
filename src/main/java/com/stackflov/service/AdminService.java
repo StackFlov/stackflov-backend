@@ -210,7 +210,8 @@ public class AdminService {
                     parentReviewId = c.getReview().getId();
                     contentUrl = "/reviews/" + parentReviewId + "#comment-" + c.getId();
                 } else {
-                    throw new IllegalStateException("댓글의 부모(Board/Review)가 없습니다.");
+                    excerpt = "(삭제된 댓글입니다)";
+                    contentUrl = "#";
                 }
 
                 excerpt = cut(c.getContent(), 120);
@@ -228,7 +229,10 @@ public class AdminService {
                     contentUrl = "#";
                 }
             }
-            default -> { /* no-op */ }
+            default -> {
+                excerpt = "(알 수 없는 타입: " + report.getContentType() + ")";
+                contentUrl = "#";
+            }
         }
 
         return new AdminReportDto(

@@ -37,9 +37,10 @@ public class AdminReportDto {
         this.status = report.getStatus();
         this.reporterNickname = report.getReporter().getNickname();
         this.createdAt = report.getCreatedAt();
-        this.reportedUserId = reportedUser.getId();
-        this.reportedUserNickname = reportedUser.getNickname();
-        this.reportedUserReportCount = reportedUser.getReportCount();
+
+        this.reportedUserId = (reportedUser != null) ? reportedUser.getId() : null;
+        this.reportedUserNickname = (reportedUser != null) ? reportedUser.getNickname() : "(알 수 없음)";
+        this.reportedUserReportCount = (reportedUser != null) ? reportedUser.getReportCount() : 0;
 
         this.parentBoardId = parentBoardId;
         this.parentReviewId = parentReviewId;
