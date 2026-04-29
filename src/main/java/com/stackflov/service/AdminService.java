@@ -4,6 +4,7 @@ import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -116,12 +118,18 @@ public class AdminService {
     }
 
     private void deleteReportedContent(Long contentId, ReportType contentType) {
-        if (contentType == ReportType.BOARD) {
-            boardService.deactivateBoardByAdmin(contentId);
-        } else if (contentType == ReportType.COMMENT) {
-            commentService.deleteCommentByAdmin(contentId);
-        } else if (contentType == ReportType.REVIEW) { // 👇 REVIEW 타입 처리 로직 추가
-            mapService.deactivateReviewByAdmin(contentId);
+        try {
+            if (contentType == ReportType.BOARD) {
+                boardService.deactivateBoardByAdmin(contentId);
+            } else if (contentType == ReportType.COMMENT) {
+                commentService.deleteCommentByAdmin(contentId);
+            } else if (contentType == ReportType.REVIEW) {
+                // 🚩 여기서 터지는 예외를 무시하거나 안전하게 처리
+                mapService.deactivateReviewByAdmin(contentId);
+            }
+        } catch (IllegalArgumentException e) {
+            // 이미 삭제된 경우 로그만 남기고 정상 진행 (신고 상태는 처리 완료로 바꿔야 하니까)
+            log.warn("이미 삭제된 콘텐츠입니다. (타입: {}, ID: {})", contentType, contentId);
         }
     }
     @Transactional

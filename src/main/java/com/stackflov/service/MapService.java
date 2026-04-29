@@ -4,6 +4,7 @@ import com.stackflov.domain.*;
 import com.stackflov.dto.*;
 import com.stackflov.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Pageable;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -214,14 +216,20 @@ public class MapService {
     }
     @Transactional
     public void deactivateReviewByAdmin(Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+        reviewRepository.findById(reviewId).ifPresent(review -> {
+            // 2. 이미 비활성화된 상태가 아닐 때만 비활성화 처리
+            if (review.isActive()) {
+                review.deactivate();
 
-        // 리뷰 비활성화
-        review.deactivate();
+                // 3. 연관된 댓글 비활성화 (리뷰가 존재할 때만 실행됨)
+                commentRepository.findByReviewIdAndActiveTrue(reviewId)
+                        .forEach(Comment::deactivate);
 
-        // 해당 리뷰에 달린 모든 댓글도 함께 비활성화
-        commentRepository.findByReviewIdAndActiveTrue(reviewId).forEach(Comment::deactivate);
+                log.info("[ADMIN] 리뷰 ID {} 및 관련 댓글 비활성화 완료", reviewId);
+            } else {
+                log.info("[ADMIN] 리뷰 ID {}는 이미 비활성화 상태입니다.", reviewId);
+            }
+        });
     }
 
     private ReviewSimpleResponseDto toSimpleDto(Review r) {
