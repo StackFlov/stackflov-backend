@@ -35,7 +35,7 @@ public class MapService {
     @Value("${app.defaults.profile-image}")
     private String defaultProfileImage;
 
-    @Value("${app.cdn.domain}")   // 예: d3sutbt651osyh.cloudfront.net
+    @Value("${app.cdn.domain}")
     private String cdnDomain;
 
     // 특정 위치에 리뷰 작성
@@ -46,7 +46,7 @@ public class MapService {
         Review review = Review.builder()
                 .author(user)
                 .title(dto.getTitle())
-                .address(dto.getAddress())     // ✅ 여기
+                .address(dto.getAddress())
                 .content(dto.getContent())
                 .rating(dto.getRating())
                 .category(dto.getCategory())
@@ -61,7 +61,7 @@ public class MapService {
                         .review(savedReview)
                         .imageUrl(imageUrl)
                         .build();
-                savedReview.addReviewImage(reviewImage); // ✅ 연관관계 편의 메서드 사용
+                savedReview.addReviewImage(reviewImage);
             }
         }
         user.addExp(10);
@@ -124,7 +124,6 @@ public class MapService {
                              List<MultipartFile> images,
                              String userEmail) {
 
-        // 1) 대상 리뷰 + 권한 확인
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
 
@@ -134,7 +133,6 @@ public class MapService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        // 2) 스칼라 필드: null이 아닐 때만 반영 (부분수정)
         if (dto.getTitle()   != null) review.setTitle(dto.getTitle());
         if (dto.getAddress() != null) review.setAddress(dto.getAddress());
         if (dto.getContent() != null) review.setContent(dto.getContent());
@@ -145,14 +143,12 @@ public class MapService {
 
         // 3) 이미지 삭제/전면 교체
         if (Boolean.TRUE.equals(dto.getReplaceAll())) {
-            // 전면 교체: 기존 전부 삭제
             List<ReviewImage> all = reviewImageRepository.findAllByReviewId(reviewId);
             for (ReviewImage img : all) {
                 s3Service.deleteByKey(img.getImageUrl());      // URL이어도 내부에서 key 추출해 삭제됨
                 reviewImageRepository.delete(img);
             }
         } else if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
-            // 일부 삭제: 해당 리뷰의 것만 안전하게 조회 후 삭제
             List<ReviewImage> toDelete =
                     reviewImageRepository.findAllByIdInAndReviewId(dto.getDeleteImageIds(), reviewId);
             for (ReviewImage img : toDelete) {
@@ -190,22 +186,17 @@ public class MapService {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
-        // 1) 리뷰에 연결된 이미지들 먼저 조회(추후 S3 삭제용)
         List<ReviewImage> images = reviewImageRepository.findAllByReviewId(reviewId);
 
-        // 2) 리뷰/댓글 소프트 삭제
         review.deactivate();
         commentRepository.bulkDeactivateByReviewId(reviewId);
 
-        // 3) S3에서 원본 삭제 (CDN URL이든 key든 deleteByKey가 알아서 key 추출)
         for (ReviewImage img : images) {
             String url = img.getImageUrl();
             if (url != null && !url.isBlank()) {
                 try {
                     s3Service.deleteByKey(url);
                 } catch (Exception e) {
-                    // 이미지 하나 실패해도 전체 롤백하지 않도록 로깅만 하고 계속 진행
-                    // 필요하면 @Slf4j 붙이고 log.warn 사용
                     System.out.println("S3 이미지 삭제 실패: " + url + " / " + e.getMessage());
                 }
             }
@@ -217,11 +208,9 @@ public class MapService {
     @Transactional
     public void deactivateReviewByAdmin(Long reviewId) {
         reviewRepository.findById(reviewId).ifPresent(review -> {
-            // 2. 이미 비활성화된 상태가 아닐 때만 비활성화 처리
             if (review.isActive()) {
                 review.deactivate();
 
-                // 3. 연관된 댓글 비활성화 (리뷰가 존재할 때만 실행됨)
                 commentRepository.findByReviewIdAndActiveTrue(reviewId)
                         .forEach(Comment::deactivate);
 
