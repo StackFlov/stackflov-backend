@@ -84,7 +84,8 @@ public class SecurityConfig {
                                 "/swagger-resources/**","/webjars/**","/actuator/health",
                                 "/error",
                                 "/test-chat.html", "/ws-stomp/**",
-                                "/"
+                                "/",
+                                "/boards/**", "/map/reviews/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
