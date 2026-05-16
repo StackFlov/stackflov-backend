@@ -40,41 +40,38 @@ public class BoardService {
     // ✅ 단일 게시글 조회
     @Transactional
     public BoardResponseDto getBoard(Long boardId, String email) {
+        // 1. 게시글 조회 및 조회수 증가
         Board board = boardRepository.findByIdAndActiveTrue(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없거나 삭제되었습니다."));
-
         board.increaseViewCount();
 
-        boolean isLiked = userRepository.findByEmail(email)
-                .map(user -> likeRepository.existsByUserAndBoardAndActiveTrue(user, board))
-                .orElse(false);
         log.info("[DEBUG] getBoard 호출됨 - boardId: {}, email: {}", boardId, email);
 
-        boolean isBookmarked = userRepository.findByEmail(email)
-                .map(user -> bookmarkRepository.existsByUserAndBoardAndActiveTrue(user, board))
-                .orElse(false);
+        // 2. 유저 조회 (중복 쿼리 제거 및 Null 방어 조치)
+        User user = (email != null && !email.isBlank())
+                ? userRepository.findByEmail(email).orElse(null)
+                : null;
 
-        List<String> imageUrls = board.getImages().stream()
-                .filter(BoardImage::isActive)
-                .sorted(Comparator.comparing(i -> i.getSortOrder() == null ? Integer.MAX_VALUE : i.getSortOrder()))
-                .map(img -> s3Service.publicUrl(img.getImageUrl())) // key → URL 변환
-                .collect(Collectors.toList());
+        // 3. 좋아요 및 북마크 여부 확인
+        boolean isLiked = user != null && likeRepository.existsByUserAndBoardAndActiveTrue(user, board);
+        boolean isBookmarked = user != null && bookmarkRepository.existsByUserAndBoardAndActiveTrue(user, board);
 
-        String raw = board.getAuthor().getProfileImage(); // DB: key or null
-        String authorProfileImageUrl = (raw == null || raw.isBlank())
-                ? defaultProfileImage                       // 기본 CDN 이미지
-                : s3Service.publicUrl(raw);
+        // 4. 이미지 및 작성자 프로필 URL 처리 (메서드 추출)
+        List<String> imageUrls = convertToPublicImageUrls(board);
+        String authorProfileImageUrl = getAuthorProfileImageUrl(board.getAuthor());
 
+        // 5. 해시태그 조회
         List<String> hashtags = boardHashtagRepository.findHashtagNamesByBoardId(boardId);
 
+        // 6. DTO 매핑 및 반환
         return BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
                 .content(board.getContent())
                 .category(board.getCategory())
+                .authorId(board.getAuthor().getId())
                 .authorEmail(board.getAuthor().getEmail())
                 .authorNickname(board.getAuthor().getNickname())
-                .authorId(board.getAuthor().getId())
                 .imageUrls(imageUrls)
                 .viewCount(board.getViewCount())
                 .createdAt(board.getCreatedAt())
@@ -85,6 +82,27 @@ public class BoardService {
                 .authorProfileImageUrl(authorProfileImageUrl)
                 .hashtags(hashtags)
                 .build();
+    }
+
+    /**
+     * 게시글 내부의 이미지들을 정렬하여 S3 Public URL 리스트로 변환합니다.
+     */
+    private List<String> convertToPublicImageUrls(Board board) {
+        return board.getImages().stream()
+                .filter(BoardImage::isActive)
+                .sorted(Comparator.comparing(img -> img.getSortOrder() == null ? Integer.MAX_VALUE : img.getSortOrder()))
+                .map(img -> s3Service.publicUrl(img.getImageUrl()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 작성자의 프로필 이미지 URL을 반환하며, 공백이거나 없을 경우 기본 이미지를 반환합니다.
+     */
+    private String getAuthorProfileImageUrl(User author) {
+        String rawProfileImage = author.getProfileImage();
+        return (rawProfileImage == null || rawProfileImage.isBlank())
+                ? defaultProfileImage
+                : s3Service.publicUrl(rawProfileImage);
     }
 
     @Transactional(readOnly = true)
